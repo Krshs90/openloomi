@@ -166,7 +166,7 @@ export function Footer({
         },
         {
           name: "GitHub",
-          href: "https://github.com/melandlabs/openloomi",
+          href: "https://github.com/melandlabs/alloomi",
           icon: <RemixIcon name="github" variant="line" size="size-4" />,
         },
         {
@@ -245,7 +245,7 @@ export function Footer({
                 <Link href="/" className="flex items-center gap-2 mb-3">
                   <Image
                     src="/img/Logo-full-dark.svg"
-                    alt="Alloomi"
+                    alt="OpenLoomi"
                     className="hidden md:block h-7 w-auto object-contain"
                     width={266}
                     height={28}
@@ -253,7 +253,7 @@ export function Footer({
                   />
                   <Image
                     src="/img/logo.svg"
-                    alt="Alloomi"
+                    alt="OpenLoomi"
                     className="block md:hidden h-7 w-auto object-contain"
                     width={28}
                     height={28}

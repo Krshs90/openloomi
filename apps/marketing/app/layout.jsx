@@ -41,7 +41,7 @@ export const metadata = {
         url: `${siteMetadata.siteUrl}/images/home/intelligence-hero.png`,
         width: 1024,
         height: 1024,
-        alt: "Alloomi — Your proactive AI workspace. Always one step ahead.",
+        alt: "OpenLoomi — Your proactive AI workspace. Always one step ahead.",
       },
     ],
   },

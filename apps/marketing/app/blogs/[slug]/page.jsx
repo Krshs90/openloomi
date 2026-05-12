@@ -23,7 +23,6 @@ function PostContent({ post }) {
       <Navbar
         links={[
           { name: "Home", href: "/" },
-          { name: "Pricing", href: "/pricing" },
           { name: "Docs", href: "/docs" },
           { name: "Blogs", href: "/blogs" },
         ]}
@@ -78,9 +77,9 @@ export async function generateMetadata({ params }) {
   if (!slug) {
     return {
       title:
-        "Alloomi AI Blog | Calm Communication Strategies | AI Inbox Insights | Customer Support Automation Playbook | Multilingual Messaging Tips | Productivity Systems for Remote Teams",
+        "OpenLoomi Blog | Calm Communication Strategies | AI Inbox Insights | Customer Support Automation Playbook | Multilingual Messaging Tips | Productivity Systems for Remote Teams",
       description:
-        "Discover Alloomi AI perspectives on calm communication | deep dives on inbox intelligence | automation guides for customer support | multilingual messaging best practices | productivity systems powering remote teams.",
+        "Discover OpenLoomi perspectives on calm communication | deep dives on inbox intelligence | automation guides for customer support | multilingual messaging best practices | productivity systems powering remote teams.",
     };
   }
 
@@ -88,16 +87,16 @@ export async function generateMetadata({ params }) {
   if (!post) {
     return {
       title:
-        "Article Not Found | Alloomi AI Knowledge Base | Calm Communication Guides | Inbox Intelligence Playbook | Productivity Systems Reference | Automation & Translation Tips",
+        "Article Not Found | OpenLoomi Knowledge Base | Calm Communication Guides | Inbox Intelligence Playbook | Productivity Systems Reference | Automation & Translation Tips",
       description:
-        "The article you requested is unavailable. Browse the Alloomi AI blog for calm communication guides | inbox intelligence playbooks | productivity systems references | automation & translation tips | Alloomi product updates.",
+        "The article you requested is unavailable. Browse the OpenLoomi blog for calm communication guides | inbox intelligence playbooks | productivity systems references | automation & translation tips | OpenLoomi product updates.",
       alternates: {
         canonical: `https://alloomi.ai/blogs/${slug}`,
       },
     };
   }
 
-  const baseTitle = post.meta.title || "Alloomi AI Blog";
+  const baseTitle = post.meta.title || "OpenLoomi Blog";
   const slugWords = slug.replace(/-/g, " ");
 
   const titleSegments = [
@@ -110,7 +109,7 @@ export async function generateMetadata({ params }) {
   const pageTitle = Array.from(new Set(titleSegments)).join(" | ");
 
   const descriptionSegments = [
-    post.meta.description || `${baseTitle} from Alloomi AI`,
+    post.meta.description || `${baseTitle} from OpenLoomi`,
     `${slugWords} calm communication`,
     "AI inbox summary best practices",
     "privacy-first customer support automation",
@@ -176,12 +175,12 @@ export default async function BlogPage({ params }) {
     dateModified: post.meta.updatedAt || post.meta.date,
     author: {
       "@type": "Organization",
-      name: "Alloomi",
+      name: "OpenLoomi",
       url: "https://alloomi.ai",
     },
     publisher: {
       "@type": "Organization",
-      name: "Alloomi",
+      name: "OpenLoomi",
       logo: {
         "@type": "ImageObject",
         url: "https://alloomi.ai/images/logo_web.png",

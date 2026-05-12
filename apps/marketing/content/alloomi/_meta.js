@@ -1,5 +1,5 @@
 const meta = {
-  index: "What is Alloomi?",
+  index: "What is OpenLoomi?",
   "getting-started": "Getting Started",
   settings: "Settings",
   connectors: "Connectors",
@@ -9,7 +9,6 @@ const meta = {
   "messaging-apps": "Messaging Apps",
   skills: "Skills",
   library: "Library",
-  "upgrade-plan": "Upgrade Plan",
   "privacy-security": "Privacy & Security",
   "use-cases": "Use Cases",
   glossary: "Glossary",

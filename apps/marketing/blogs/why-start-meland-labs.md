@@ -35,6 +35,6 @@ Look, all of this ties directly into our everyday lives. These agents must maint
 
 For a long time, I've wanted to use technology to solve real, universal problems. I believe personal advanced AI agents are one of the biggest opportunities ahead. At Meland Labs, we're building a “advanced personal AI agent playground” where such companions live, learn, and grow with you, across knowledge, wellness, productivity, wealth, and more. The next frontier isn't bigger models, It's better relationships.
 
-But visions have to start somewhere practical. For me, the most urgent problem was communication. That's why, together with two partners, we recently built the first version of Alloomi, an AI assistant designed to cut through communication clutter. Alloomi summaries and replies your messages, protects your attention, and frees you to focus on what matters most.
+But visions have to start somewhere practical. For me, the most urgent problem was communication. That's why, together with two partners, we recently built the first version of OpenLoomi, an AI assistant designed to cut through communication clutter. OpenLoomi summaries and replies your messages, protects your attention, and frees you to focus on what matters most.
 
-It's still early, but I hope Alloomi can help people like me, and maybe thousands, even millions of others, who are struggling with the same challenges.
+It's still early, but I hope OpenLoomi can help people like me, and maybe thousands, even millions of others, who are struggling with the same challenges.

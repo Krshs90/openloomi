@@ -55,7 +55,7 @@ function GalleryImageCard({ item }: { item: GalleryItem }) {
  * Desktop: multi-column grid layout
  */
 export default function GallerySection() {
-  // Gallery image data - using existing Alloomi product screenshots
+  // Gallery image data - using existing OpenLoomi product screenshots
   const galleryItems: GalleryItem[] = [
     {
       image: "/img/alloomi/chat.png",
@@ -128,9 +128,9 @@ export default function GallerySection() {
     <section className={sectionWrapper}>
       <div className="w-full">
         <div className="mb-8 px-2">
-          <h2 className={sectionHeading}>See Alloomi in Action</h2>
+          <h2 className={sectionHeading}>See OpenLoomi in Action</h2>
           <p className="text-foreground-muted text-lg">
-            Explore Alloomi&apos;s core features and use cases
+            Explore OpenLoomi&apos;s core features and use cases
           </p>
         </div>
 

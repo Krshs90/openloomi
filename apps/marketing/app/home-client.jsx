@@ -39,50 +39,50 @@ const data = {
     github: "https://github.com/melandlabs/release/releases",
   },
   hero: {
-    title: "You focus on what matters. Alloomi closes the loop.",
+    title: "You focus on what matters. OpenLoomi closes the loop.",
     subtitle:
       "Your proactive AI workspace. <br/>Nothing falls through the cracks.",
-    cta: { primary: "Start Free Trial" },
+    cta: { primary: "Get Started" },
   },
   features: [
     {
       title: "Proactive Awareness — Before You Ask",
       description:
-        "Alloomi continuously monitors signals across platforms—Slack, Email, Calendar, Documents—alerting you to important events proactively. Anomaly detection 10 minutes early, critical opportunities never missed.",
+        "OpenLoomi continuously monitors signals across platforms—Slack, Email, Calendar, Documents—alerting you to important events proactively. Anomaly detection 10 minutes early, critical opportunities never missed.",
       videoUrl: "/img/alloomi/alloomi-event.gif",
     },
     {
       title: "95% Noise Filtering — Focus on What Matters",
       description:
-        "Hundreds of daily messages refined into one focused panel. Alloomi tells you what you should act on—not drowning you in information overload.",
+        "Hundreds of daily messages refined into one focused panel. OpenLoomi tells you what you should act on—not drowning you in information overload.",
       videoUrl: "/img/alloomi/alloomi-filter.gif",
     },
     {
       title: "Long-Term Memory — Context Across Connectors",
       description:
-        "Alloomi builds persistent knowledge graphs of people, projects, and decisions. Six months later, it still remembers your commitments and context. No more repeating yourself, no more context loss.",
+        "OpenLoomi builds persistent knowledge graphs of people, projects, and decisions. Six months later, it still remembers your commitments and context. No more repeating yourself, no more context loss.",
       videoUrl: "/img/alloomi/alloomi-connectors.gif",
     },
     {
       title: "Autonomous Execution — Complete the Loop",
       description:
-        "Not just telling you what to do—Alloomi does it. Drafts replies, schedules meetings, generates reports, tracks and validates results end-to-end.",
+        "Not just telling you what to do—OpenLoomi does it. Drafts replies, schedules meetings, generates reports, tracks and validates results end-to-end.",
       videoUrl: "/img/alloomi/alloomi-actions.gif",
     },
     {
       title: "200+ Skills — Rich Execution Capabilities",
       description:
-        "From code generation to PDF creation, data analysis to browser automation—Alloomi's Skills ecosystem covers every work scenario and keeps expanding.",
+        "From code generation to PDF creation, data analysis to browser automation—OpenLoomi's Skills ecosystem covers every work scenario and keeps expanding.",
       videoUrl: "/img/alloomi/alloomi-skills.gif",
     },
   ],
   support: {
-    title: "How People Use Alloomi",
+    title: "How People Use OpenLoomi",
     items: [
       {
         title: "Never Miss a Critical Signal",
         description:
-          "For leaders navigating cross-departmental complexity. Alloomi acts as your executive twin—tracking milestones across the organization and turning scattered signals into a unified strategic path.",
+          "For leaders navigating cross-departmental complexity. OpenLoomi acts as your executive twin—tracking milestones across the organization and turning scattered signals into a unified strategic path.",
         role: "For Global Managers",
         image: "/img/People/Global Leaders.png",
       },
@@ -96,7 +96,7 @@ const data = {
       {
         title: "One Person Does the Work of Many",
         description:
-          "For founders and sales professionals. Alloomi learns your communication style, automatically maintains hundreds of client relationships, generates personalized proposals—never burns out.",
+          "For founders and sales professionals. OpenLoomi learns your communication style, automatically maintains hundreds of client relationships, generates personalized proposals—never burns out.",
         role: "For Founders & Sales",
         image: "/img/People/Creators Sales.png",
       },
@@ -105,12 +105,12 @@ const data = {
   sovereignty: {
     title: "Your Data, Your Sovereignty",
     subtitle:
-      "Alloomi puts privacy and control first—you never need to trade data sovereignty for intelligence.",
+      "OpenLoomi puts privacy and control first—you never need to trade data sovereignty for intelligence.",
     items: [
       {
         title: "Local-First Architecture",
         description:
-          "Your raw messages and files stay on your device. Alloomi accesses only what's needed—no unnecessary uploads.",
+          "Your raw messages and files stay on your device. OpenLoomi accesses only what's needed—no unnecessary uploads.",
         image: "/img/Privacy/Property 1=Local-First.png",
         icon: "database-2",
       },
@@ -140,12 +140,12 @@ const data = {
   signals: {
     title: "Strategy and Execution. In Sync.",
     subtitle:
-      "Alloomi turns scattered information into a proactive digital twin—aligning your world so you can move forward, not just react.",
+      "OpenLoomi turns scattered information into a proactive digital twin—aligning your world so you can move forward, not just react.",
     heroCard: {
       icon: "/img/Icon/graph.svg",
       title: "Transform Your Communication Workflow",
       description:
-        "Alloomi reimagines how you interact with information. Instead of drowning in messages, you work with meaningful signals that drive decisions and actions. Our intelligent system filters, connects, and prioritizes what truly matters.",
+        "OpenLoomi reimagines how you interact with information. Instead of drowning in messages, you work with meaningful signals that drive decisions and actions. Our intelligent system filters, connects, and prioritizes what truly matters.",
     },
     cards: [
       {
@@ -164,7 +164,7 @@ const data = {
         icon: "/img/Icon/suggestion.svg",
         title: "Active Momentum",
         description:
-          "Move beyond suggestions. Alloomi orchestrates the tools you need to turn intent into action.",
+          "Move beyond suggestions. OpenLoomi orchestrates the tools you need to turn intent into action.",
       },
     ],
   },
@@ -239,7 +239,7 @@ data.platforms = [
 const supportSectionWrapper =
   "w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pb-3 sm:pb-20 md:pb-20 mb-0";
 
-// Support Section ("How People Use Alloomi") is hidden per requirements
+// Support Section ("How People Use OpenLoomi") is hidden per requirements
 const showSupportSection = false;
 const sectionHeading =
   "text-2xl sm:text-3xl md:text-5xl w-full font-serif font-semibold tracking-tight text-foreground text-left mb-4";
@@ -350,6 +350,17 @@ const MarketingPage = () => {
               <p className="text-xl text-foreground-secondary w-full text-left">
                 {t("hero.subtitle")}
               </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href="https://github.com/melandlabs/alloomi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-primary-gradient text-primary-foreground px-8 py-4 rounded-lg shadow-sm font-medium transition-all transform flex items-center gap-2 relative z-20 hover:brightness-95"
+                >
+                  <RemixIcon name="github" variant="fill" size="size-5" />
+                  {t("cta.openSourceCta")}
+                </a>
+              </div>
               {/* Download buttons hidden */}
               {/* <div className="flex flex-col sm:flex-row justify-center gap-4">
                 {platform === "mobile" && (
@@ -437,7 +448,7 @@ const MarketingPage = () => {
               <div className="w-full mt-8">
                 <Image
                   src="/img/pic/Main.png"
-                  alt="Alloomi main workspace preview"
+                  alt="OpenLoomi main workspace preview"
                   className="w-full h-auto rounded-3xl"
                   width={1440}
                   height={900}
@@ -504,6 +515,45 @@ const MarketingPage = () => {
         <ThenItActsSection />
         <CapabilitiesSection />
 
+        {/* Open-Source Section */}
+        <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-20 lg:px-16 py-20 sm:py-32">
+          <div className="flex flex-col items-center text-center">
+            <SectionEyebrow variant="pill" className="mb-6">
+              {t("openSource.eyebrow")}
+            </SectionEyebrow>
+            <h2 className="text-[42px] sm:text-[48px] leading-[1.04] font-serif font-semibold tracking-tight text-foreground mb-6">
+              {t("openSource.title")}
+            </h2>
+            <p className="text-lg text-foreground-muted max-w-[640px] mb-10">
+              {t("openSource.subtitle")}
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+              <code className="bg-background-secondary border border-border rounded-lg px-6 py-3 text-sm font-mono text-foreground">
+                {t("openSource.cloneCommand")}
+              </code>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <a
+                href="https://github.com/melandlabs/alloomi"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-primary-gradient text-primary-foreground px-8 py-4 rounded-lg shadow-sm font-medium transition-all transform flex items-center gap-2 hover:brightness-95"
+              >
+                <RemixIcon name="github" size="size-5" />
+                {t("openSource.cta")}
+              </a>
+              <a
+                href="https://discord.gg/alloomi"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-transparent border border-border-primary text-foreground px-8 py-4 rounded-lg font-medium transition-all hover:bg-background-secondary"
+              >
+                {t("openSource.community")}
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* Work with Signals Section - hidden per latest requirement */}
 
         {/* Support Section */}
@@ -531,7 +581,7 @@ const MarketingPage = () => {
           </section>
         )}
 
-        {/* What People Trust Alloomi With Section */}
+        {/* What People Trust OpenLoomi With Section */}
         <TestimonialSection />
 
         {/* Sovereignty Section */}

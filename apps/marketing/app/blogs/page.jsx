@@ -13,7 +13,7 @@ import { Footer } from "@/components/footer";
 const blogIndexTitle = "Blogs";
 
 const blogIndexDescription =
-  "Explore the Alloomi AI blog for calm communication tactics | deep dives into AI inbox summaries | customer support automation stories | multilingual messaging best practices | productivity playbooks for distributed teams.";
+  "Explore the OpenLoomi blog for calm communication tactics | deep dives into AI inbox summaries | customer support automation stories | multilingual messaging best practices | productivity playbooks for distributed teams.";
 
 export const metadata = {
   title: blogIndexTitle,

@@ -54,13 +54,13 @@ export const DocsCard = ({ items, basePath }: DocsCardProps): JSX.Element => {
   );
 };
 
-// Default export pre-configured Alloomi doc card component
-export const AlloomiDocsCards = (): JSX.Element => {
+// Default export pre-configured OpenLoomi doc card component
+export const OpenLoomiDocsCards = (): JSX.Element => {
   const docsItems: DocItem[] = [
     {
       id: "",
-      title: "What is Alloomi?",
-      description: "Proactive AI workspace that understands your intent",
+      title: "What is OpenLoomi?",
+      description: "Open-source AI workspace that understands your intent",
     },
     {
       id: "getting-started",
@@ -85,7 +85,7 @@ export const AlloomiDocsCards = (): JSX.Element => {
     {
       id: "messaging-apps",
       title: "Messaging Apps",
-      description: "Use Alloomi directly inside Telegram, WhatsApp, and more",
+      description: "Use OpenLoomi directly inside Telegram, WhatsApp, and more",
     },
     {
       id: "automation",
@@ -105,12 +105,7 @@ export const AlloomiDocsCards = (): JSX.Element => {
     {
       id: "settings",
       title: "Settings",
-      description: "Configure your Alloomi experience",
-    },
-    {
-      id: "upgrade-plan",
-      title: "Upgrade Plan",
-      description: "Choose the plan that fits your needs",
+      description: "Configure your OpenLoomi experience",
     },
     {
       id: "privacy-security",
@@ -120,7 +115,7 @@ export const AlloomiDocsCards = (): JSX.Element => {
     {
       id: "use-cases",
       title: "Use Cases",
-      description: "Discover what you can do with Alloomi",
+      description: "Discover what you can do with OpenLoomi",
     },
   ];
 

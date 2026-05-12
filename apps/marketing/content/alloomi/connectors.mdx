@@ -1,16 +1,16 @@
 ---
 title: "Connectors"
-description: "Connect your messaging platforms, email, and productivity tools to Alloomi"
+description: "Connect your messaging platforms, email, and productivity tools to OpenLoomi"
 icon: "FaPlug"
 ---
 
 # Connectors
 
-Link your platforms or subscribe to content you care about — Alloomi keeps watch so you don't have to.
+Link your platforms or subscribe to content you care about — OpenLoomi keeps watch so you don't have to.
 
-To add a connector, open **Settings → Connectors** and click **+ Add New Connector**. Alloomi will guide you through the authorization process for each platform.
+To add a connector, open **Settings → Connectors** and click **+ Add New Connector**. OpenLoomi will guide you through the authorization process for each platform.
 
-> 🔒 **Privacy by design**: Alloomi only reads messages to generate insights. It does not store raw message content on its servers — data is processed locally or encrypted in transit.
+> 🔒 **Privacy by design**: OpenLoomi only reads messages to generate insights. It does not store raw message content on its servers — data is processed locally or encrypted in transit.
 
 ## Supported Platforms
 
@@ -85,7 +85,7 @@ The table below compares what each connector supports across key capabilities. U
 
 ## Authorization Modes Explained
 
-Alloomi supports two distinct authorization modes for messaging platforms. Understanding the difference helps you choose the right platform for your workflow.
+OpenLoomi supports two distinct authorization modes for messaging platforms. Understanding the difference helps you choose the right platform for your workflow.
 
 ### Bot Token Mode — Feishu, DingTalk, QQ
 
@@ -97,7 +97,7 @@ These platforms use **enterprise self-built applications** with bot credentials 
 | DingTalk | Client ID + Secret | Messages sent **directly to bot** or **@bot in group** | Find bot → private chat, or @mention bot in group |
 | QQ       | App ID + Token     | Messages sent **directly to bot** or **@bot in group** | Find bot → private chat, or @mention bot in group |
 
-**How it works:** You create a bot app on the platform, obtain credentials, and connect it to Alloomi. Users can either:
+**How it works:** You create a bot app on the platform, obtain credentials, and connect it to OpenLoomi. Users can either:
 
 1. Find your bot in the messaging app and send messages directly to it (private chat)
 2. Add the bot to a group and @mention it — the bot will respond to messages directed at it
@@ -113,7 +113,7 @@ These platforms connect to a **user's personal account** via QR code or phone ve
 | Telegram | QR code / Phone     | **Saved Messages** (user messages themselves) | Send message to yourself |
 | WhatsApp | QR code / Pair code | All personal account chats                    | Send message to yourself |
 
-**How it works:** After logging into your personal account, Alloomi reads messages sent to your own account (Saved Messages / 自己发给自己). When you send a message to yourself, Alloomi reads it, generates an AI response, and you continue the conversation in the same chat.
+**How it works:** After logging into your personal account, OpenLoomi reads messages sent to your own account (Saved Messages / 自己发给自己). When you send a message to yourself, OpenLoomi reads it, generates an AI response, and you continue the conversation in the same chat.
 
 ### Key Differences
 
@@ -148,7 +148,7 @@ These platforms connect to a **user's personal account** via QR code or phone ve
 After clicking **[Connect Telegram]**, you'll be redirected to Telegram's authorization page.
 
 <div align="center">
-  <img src="/img/alloomi/telegram-login.png" alt="Alloomi Telegram Login" />
+  <img src="/img/alloomi/telegram-login.png" alt="OpenLoomi Telegram Login" />
 </div>
 
 1. Enter your phone number
@@ -156,7 +156,7 @@ After clicking **[Connect Telegram]**, you'll be redirected to Telegram's author
 <div align="center">
   <img
     src="/img/alloomi/telegram-login-phone.png"
-    alt="Alloomi Telegram Login Phone"
+    alt="OpenLoomi Telegram Login Phone"
   />
 </div>
 
@@ -165,7 +165,7 @@ After clicking **[Connect Telegram]**, you'll be redirected to Telegram's author
 <div align="center">
   <img
     src="/img/alloomi/telegram-login-code.png"
-    alt="Alloomi Telegram Login Code"
+    alt="OpenLoomi Telegram Login Code"
   />
 </div>
 
@@ -174,7 +174,7 @@ After clicking **[Connect Telegram]**, you'll be redirected to Telegram's author
 <div align="center">
   <img
     src="/img/alloomi/telegram-login-password.png"
-    alt="Alloomi Telegram Login Password"
+    alt="OpenLoomi Telegram Login Password"
   />
 </div>
 
@@ -183,7 +183,7 @@ Or choose to authorize by **scanning a QR code** in the Telegram app
 <div align="center">
   <img
     src="/img/alloomi/telegram-login-qr-code.png"
-    alt="Alloomi Telegram Login QR Code"
+    alt="OpenLoomi Telegram Login QR Code"
   />
 </div>
 
@@ -195,23 +195,23 @@ Or choose to authorize by **quick login** in the Telegram app if you have offici
 
 ### Slack
 
-After clicking **[Connect Slack]**, you'll be redirected to Slack's authorization page. Click **[Install Alloomi]** to add Alloomi to your workspace.
+After clicking **[Connect Slack]**, you'll be redirected to Slack's authorization page. Click **[Install OpenLoomi]** to add OpenLoomi to your workspace.
 
 <div align="center">
-  <img src="/img/alloomi/slack-auth.png" alt="Alloomi Slack Auth" />
+  <img src="/img/alloomi/slack-auth.png" alt="OpenLoomi Slack Auth" />
 </div>
 
-> Note: Only workspace owners can install Alloomi currently.
+> Note: Only workspace owners can install OpenLoomi currently.
 
 ### Discord
 
-After clicking **[Connect Discord]**, select a Discord server to install Alloomi.
+After clicking **[Connect Discord]**, select a Discord server to install OpenLoomi.
 
 <div align="center">
-  <img src="/img/alloomi/discord-auth.png" alt="Alloomi Discord Auth" />
+  <img src="/img/alloomi/discord-auth.png" alt="OpenLoomi Discord Auth" />
 </div>
 
-> Note: Only Discord server managers can install Alloomi currently.
+> Note: Only Discord server managers can install OpenLoomi currently.
 
 ### WhatsApp
 
@@ -220,7 +220,7 @@ After clicking **[Connect WhatsApp]**, scan the QR code in the WhatsApp app to c
 <div align="center">
   <img
     src="/img/alloomi/whatsapp-login-qr-code.png"
-    alt="Alloomi WhatsApp Login"
+    alt="OpenLoomi WhatsApp Login"
   />
 </div>
 
@@ -229,7 +229,7 @@ Or use a **phone pair code** to link WhatsApp without scanning:
 <div align="center">
   <img
     src="/img/alloomi/whatsapp-login-phone.png"
-    alt="Alloomi WhatsApp Login"
+    alt="OpenLoomi WhatsApp Login"
   />
 </div>
 
@@ -247,10 +247,10 @@ iMessage integration is **only available on macOS**.
 **How to grant permissions:**
 
 - Go to **System Settings > Privacy & Security > Full Disk Access**
-- Add the running app (Terminal, Node, or Alloomi)
+- Add the running app (Terminal, Node, or OpenLoomi)
 - Restart the app after granting permissions
 
-> 💡 Your message data stays on your local device. Alloomi only reads recent messages when you use it to generate insights.
+> 💡 Your message data stays on your local device. OpenLoomi only reads recent messages when you use it to generate insights.
 
 <div align="center">
   <img src="/img/alloomi/imessage-login.png" />
@@ -266,19 +266,19 @@ QQ integration uses a **bot mode** via a persistent WebSocket connection. Unlike
 2. Create a new bot application and obtain your **Bot App ID** and **Bot Token**
 3. Enable the message receive permissions for your bot
 
-**Connect in Alloomi:**
+**Connect in OpenLoomi:**
 
 1. Click **+ Add New Connector** and select **QQ**
 2. Enter your **Bot App ID** and **Bot Token**
-3. Click **Connect** — Alloomi establishes a long-lived WebSocket connection to your bot
+3. Click **Connect** — OpenLoomi establishes a long-lived WebSocket connection to your bot
 
 <div align="center">
   <img src="/img/alloomi/qq-config.png" />
 </div>
 
-Once connected, users who message your QQ bot will have their conversations processed by Alloomi. Alloomi replies **as the bot**.
+Once connected, users who message your QQ bot will have their conversations processed by OpenLoomi. OpenLoomi replies **as the bot**.
 
-> 💡 QQ integration is in bot mode — Alloomi reads messages sent to your bot, not your personal QQ account.
+> 💡 QQ integration is in bot mode — OpenLoomi reads messages sent to your bot, not your personal QQ account.
 
 ### Lark/Feishu
 
@@ -347,16 +347,16 @@ Go to **Credentials & Basic Info** and copy your:
 - **App ID** (starts with `cli_`)
 - **App Secret**
 
-**Step 5 — Connect in Alloomi:**
+**Step 5 — Connect in OpenLoomi:**
 
-1. In Alloomi, go to **Settings → Connectors → + Add New Connector** → select **Lark/Feishu**
+1. In OpenLoomi, go to **Settings → Connectors → + Add New Connector** → select **Lark/Feishu**
 2. Enter your **App ID** and **App Secret**
 3. Click **Connect**
 
 <div align="center">
   <img
     src="/img/alloomi/feishu-config.png"
-    alt="Alloomi Lark/Feishu connector config"
+    alt="OpenLoomi Lark/Feishu connector config"
   />
 </div>
 
@@ -389,24 +389,24 @@ DingTalk integration uses a **Stream mode bot** — a long-lived WebSocket conne
 4. Obtain your **Client ID (AppKey)** and **Client Secret (AppSecret)**
 
 <div align="center">
-  <img src="/img/alloomi/dingtalk-config.png" alt="Alloomi Weixin Login" />
+  <img src="/img/alloomi/dingtalk-config.png" alt="OpenLoomi Weixin Login" />
 </div>
 
-**Connect in Alloomi:**
+**Connect in OpenLoomi:**
 
 1. Click **+ Add New Connector** and select **DingTalk**
 2. Enter your **Client ID (AppKey)** and **Client Secret (AppSecret)**
 3. Optionally set a display name for your bot
-4. Click **Connect** — Alloomi establishes a long-lived WebSocket connection to your bot
+4. Click **Connect** — OpenLoomi establishes a long-lived WebSocket connection to your bot
 
-> 💡 Stream mode means Alloomi connects directly via WebSocket — no server or domain setup needed. Once connected, you can chat with your bot directly in DingTalk.
+> 💡 Stream mode means OpenLoomi connects directly via WebSocket — no server or domain setup needed. Once connected, you can chat with your bot directly in DingTalk.
 
 ### Weixin
 
 After clicking **[Connect Weixin]**, scan the QR code in the Weixin app to complete authorization.
 
 <div align="center">
-  <img src="/img/alloomi/wechat-login-qr-code.png" alt="Alloomi Weixin Login" />
+  <img src="/img/alloomi/wechat-login-qr-code.png" alt="OpenLoomi Weixin Login" />
 </div>
 
 ### Gmail
@@ -414,7 +414,7 @@ After clicking **[Connect Weixin]**, scan the QR code in the Weixin app to compl
 After clicking **[Connect Gmail]**, enter your email address and an [App Password](https://support.google.com/accounts/answer/185833) to authorize. (Regular Gmail password won't work — App Passwords require 2-Step Verification to be enabled.)
 
 <div align="center">
-  <img src="/img/alloomi/gmail-login.png" alt="Alloomi Gmail Login" />
+  <img src="/img/alloomi/gmail-login.png" alt="OpenLoomi Gmail Login" />
 </div>
 
 ### Outlook
@@ -422,7 +422,7 @@ After clicking **[Connect Gmail]**, enter your email address and an [App Passwor
 After clicking **[Connect Outlook]**, enter your email address and app password to authorize.
 
 <div align="center">
-  <img src="/img/alloomi/outlook-login.png" alt="Alloomi Outlook Login" />
+  <img src="/img/alloomi/outlook-login.png" alt="OpenLoomi Outlook Login" />
 </div>
 
 ### X
@@ -430,7 +430,7 @@ After clicking **[Connect Outlook]**, enter your email address and app password 
 After clicking **[Connect X]**, complete the OAuth authorization flow to link your X account.
 
 <div align="center">
-  <img src="/img/alloomi/x-auth.png" alt="Alloomi X Auth" />
+  <img src="/img/alloomi/x-auth.png" alt="OpenLoomi X Auth" />
 </div>
 
 ### RSS
@@ -438,14 +438,14 @@ After clicking **[Connect X]**, complete the OAuth authorization flow to link yo
 After clicking **[RSS]**, you can add individual RSS links or upload an OPML file for batch import.
 
 <div align="center">
-  <img src="/img/alloomi/rss.png" alt="Alloomi RSS Integration" />
+  <img src="/img/alloomi/rss.png" alt="OpenLoomi RSS Integration" />
 </div>
 
 ---
 
 ## Disconnect / Revoke Access
 
-If you no longer want Alloomi to access a connected platform, you can disconnect it at any time.
+If you no longer want OpenLoomi to access a connected platform, you can disconnect it at any time.
 
 <div align="center">
   <img src="/img/alloomi/connectors-unbind.png" alt="Disconnect platform" />
@@ -458,7 +458,7 @@ If you no longer want Alloomi to access a connected platform, you can disconnect
 
 Once disconnected:
 
-- Alloomi will immediately stop reading new messages from that platform
+- OpenLoomi will immediately stop reading new messages from that platform
 - Previously synced data is retained until manually deleted
 - You can reconnect at any time by repeating the connection steps
 

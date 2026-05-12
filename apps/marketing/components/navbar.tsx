@@ -61,7 +61,7 @@ export function Navbar({
     if (onSignInClick) {
       onSignInClick();
     } else {
-      window.open("https://app.alloomi.ai", "_blank");
+      window.open("https://github.com/melandlabs/alloomi", "_blank");
     }
   };
 
@@ -69,7 +69,7 @@ export function Navbar({
     if (onGetStartedClick) {
       onGetStartedClick();
     } else {
-      window.open("https://app.alloomi.ai", "_blank");
+      window.open("https://github.com/melandlabs/alloomi", "_blank");
     }
   };
 
@@ -82,6 +82,8 @@ export function Navbar({
       return { backgroundColor: "var(--color-background-card)" };
     return { backgroundColor: "var(--color-background)" };
   };
+
+  const githubUrl = "https://github.com/melandlabs/alloomi";
 
   // Nav padding tuned to match the design preview.
   // Move: <md shows Logo.svg only; Desktop: shows Logo-full-light.
@@ -120,7 +122,7 @@ export function Navbar({
           <Image
             // Desktop shows full logo; mobile uses monochrome logo for visibility.
             src="/img/Logo-full-light.svg"
-            alt="Alloomi"
+            alt="OpenLoomi"
             className="hidden md:block h-5 w-auto object-contain"
             width={108}
             height={30}
@@ -128,7 +130,7 @@ export function Navbar({
           />
           <Image
             src="/img/Logo-full-light.svg"
-            alt="Alloomi"
+            alt="OpenLoomi"
             className="block md:hidden h-5 w-auto object-contain"
             width={20}
             height={20}
@@ -239,8 +241,29 @@ export function Navbar({
 
         {/* Desktop Language Switcher */}
         {!showAuthButtons && (
-          <div className="hidden md:flex" style={{ alignItems: "center" }}>
+          <div
+            className="hidden md:flex"
+            style={{ alignItems: "center", gap: "12px" }}
+          >
             <LanguageSwitch />
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="OpenLoomi GitHub repository"
+              style={{
+                width: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--color-foreground-muted)",
+                textDecoration: "none",
+                transition: "color 0.15s",
+              }}
+            >
+              <RemixIcon name="github" variant="fill" size="size-5" />
+            </a>
           </div>
         )}
 
@@ -250,6 +273,27 @@ export function Navbar({
           style={{ alignItems: "center", gap: "8px" }}
         >
           <LanguageSwitch />
+          <a
+            href={githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="OpenLoomi GitHub repository"
+            style={{
+              width: "48px",
+              height: "48px",
+              backgroundColor: "var(--color-background-card)",
+              border: "1px solid var(--color-border-primary)",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--color-foreground)",
+              textDecoration: "none",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+            }}
+          >
+            <RemixIcon name="github" variant="fill" size="size-5" />
+          </a>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             style={{

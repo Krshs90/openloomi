@@ -26,13 +26,13 @@ To make an avatar "remember what you think," a single technology is insufficient
 
 #### **1. Reception: Breaking Information Silos to "Capture" Your Data Across All Channels**
 
-For an AI avatar to remember things, it first needs to "access data." Traditional tools can only connect to a single platform (e.g., only supporting Slack message summarization or Gmail). In contrast, Alloomi AI uses an "Agent cluster" to connect to 5 major mainstream tools (including Google Suites, Slack, and WhatsApp), enabling multi-modal access to text, voice, contract documents, and video keyframes. It can even capture details like "your chat frequency with customers" and "urgent instructions from your boss marked with @," ensuring "no useful information is missed."
+For an AI avatar to remember things, it first needs to "access data." Traditional tools can only connect to a single platform (e.g., only supporting Slack message summarization or Gmail). In contrast, OpenLoomi AI uses an "Agent cluster" to connect to 5 major mainstream tools (including Google Suites, Slack, and WhatsApp), enabling multi-modal access to text, voice, contract documents, and video keyframes. It can even capture details like "your chat frequency with customers" and "urgent instructions from your boss marked with @," ensuring "no useful information is missed."
 
 **Key technical points:** Adopting distributed parallel pulling + real-time stream processing to achieve data access latency of ≤100ms, preventing scenarios like "a customer sends an urgent request, but the avatar only sees it 2 hours later."
 
 #### **2. Processing: Turning Chaos into Order to "Remove Impurities" from Memory**
 
-Among the massive amount of accessed data, 80% consists of casual chats and repeated marketing messages. Storing this data directly would lead to "memory bloat." Alloomi AI solves this with a "multi-modal purification pipeline":
+Among the massive amount of accessed data, 80% consists of casual chats and repeated marketing messages. Storing this data directly would lead to "memory bloat." OpenLoomi AI solves this with a "multi-modal purification pipeline":
 
 - **Text side:** Using DBSCAN clustering to filter duplicate messages (e.g., spam ads flooding a group chat) and keyword extraction (e.g., identifying "delivery date adjusted to Week 9" from 100 chat messages);
 - **Multi-modal side:** Using OCR to recognize amounts in contract screenshots, ASR to transcribe needs from voice recordings, and even extracting micro-expressions like "a customer's frown" from videos—converting all into structured information.
@@ -41,7 +41,7 @@ The end result: "1 billion pieces of raw data → 100 million pieces of valid me
 
 #### **3. Memory: Hierarchical Intelligent Storage to Make Avatars "Remember More Accurately Over Time"**
 
-This is the core technical barrier and the key difference from "shell tools." Alloomi AI adopts a dual-memory architecture of "short-term + long-term" memory, optimized with RL (Reinforcement Learning) + LoRA (Low-Rank Adaptation):
+This is the core technical barrier and the key difference from "shell tools." OpenLoomi AI adopts a dual-memory architecture of "short-term + long-term" memory, optimized with RL (Reinforcement Learning) + LoRA (Low-Rank Adaptation):
 
 - **Short-term memory** (stored in Redis): Saves temporary interactions from the past 3 days (e.g., "product parameters a customer asked about today") with a response latency of ≤500ms to support real-time conversations;
 - **Long-term memory** (encrypted SQLite + GraphRAG): Stores core information—customer preferences (e.g., "Customer B hates long-winded content"), project milestones (e.g., "Project A deadline in October"), and your style (e.g., "prefers replying with 'No problem' over 'OK'");

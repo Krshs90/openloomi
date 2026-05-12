@@ -9,7 +9,6 @@ import { Footer } from "@/components/footer";
  */
 const navigationLinks = [
   { name: "Home", href: "/" },
-  { name: "Pricing", href: "/pricing" },
   { name: "Docs", href: "/docs" },
   { name: "Blogs", href: "/blogs" },
 ];

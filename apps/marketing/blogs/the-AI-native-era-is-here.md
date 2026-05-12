@@ -43,7 +43,7 @@ Coding got there first because concentrated context, accessible traces, and a st
 
 And when it happens, the difference won’t show up as “you got more productive.” It will show up as relief: fewer dropped threads, fewer invisible commitments, less chasing, less context reconstruction. More clarity. More momentum. More outcomes.
 
-That’s what the AI-native era should deliver, and it’s what we’re building toward at AlloomiAI.
+That’s what the AI-native era should deliver, and it’s what we’re building toward at OpenLoomiAI.
 
 — Ethan
 Founder, Meland Labs

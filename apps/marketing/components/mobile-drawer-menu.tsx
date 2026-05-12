@@ -135,7 +135,7 @@ export function MobileDrawerMenu({
               >
                 <Image
                   src="/img/Logo-full-light.svg"
-                  alt="Alloomi"
+                  alt="OpenLoomi"
                   className="h-5 w-auto object-contain"
                   width={100}
                   height={20}

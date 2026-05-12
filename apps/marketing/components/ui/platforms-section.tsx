@@ -99,7 +99,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
         <div className="w-full lg:w-fit lg:min-w-[360px] shrink-0">
           <Image
             src="/img/pic/IM.png"
-            alt="Alloomi integrated messaging preview"
+            alt="OpenLoomi integrated messaging preview"
             width={1024}
             height={640}
             className="w-full lg:w-[360px] h-auto object-cover"

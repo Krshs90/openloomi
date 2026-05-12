@@ -1,7 +1,7 @@
 ---
-title: The Full Cognitive Cycle And Why Alloomi Starts With Understanding
+title: The Full Cognitive Cycle And Why OpenLoomi Starts With Understanding
 date: 2025-11-20
-description: The Full Cognitive Cycle And Why Alloomi Starts With Understanding
+description: The Full Cognitive Cycle And Why OpenLoomi Starts With Understanding
 image: /img/blogs/9.png
 ---
 
@@ -15,7 +15,7 @@ This isn't because I'm popular, and it’s certainly not because I enjoy the noi
 
 At some point, I realized the issue wasn't the _volume_ of messaging. It was the architecture of how we process it.
 
-We are trying to fix a cognitive problem with communication tools. And that’s why I started Alloomi.
+We are trying to fix a cognitive problem with communication tools. And that’s why I started OpenLoomi.
 
 ## The Reality of How We Communicate
 
@@ -41,9 +41,9 @@ ChatGPT can write a beautiful email, but it doesn't know _who_ I'm emailing. It 
 
 So, I’m still stuck doing the heavy lifting: reading, processing, remembering context, and _then_ asking the AI to fix the grammar. The AI solved the easy part (expression) but ignored the hard part (cognition).
 
-## When Alloomi Finally Clicked
+## When OpenLoomi Finally Clicked
 
-We recently started using an internal build of Alloomi, and for the first time, something felt different.
+We recently started using an internal build of OpenLoomi, and for the first time, something felt different.
 
 It didn't just dump a list of unread messages on me. It showed me the _state_ of my world:
 
@@ -53,7 +53,7 @@ It didn't just dump a list of unread messages on me. It showed me the _state_ of
 
 I wasn't scrolling through chat logs trying to reconstruct my day. It felt like someone had pre-processed reality for me.
 
-And because Alloomi has long-term memory, when it drafted a reply, it didn't sound like a generic bot. It knew the history. It knew the tone. It felt like _me_—just a less overwhelmed version of me.
+And because OpenLoomi has long-term memory, when it drafted a reply, it didn't sound like a generic bot. It knew the history. It knew the tone. It felt like _me_—just a less overwhelmed version of me.
 
 ## Starting With "Understanding"
 
