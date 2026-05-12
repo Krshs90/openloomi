@@ -19,9 +19,9 @@
 
 ---
 
-## What is Alloomi?
+## What is OpenLoomi?
 
-Alloomi is an open-source AI workspace that runs on your desktop. It connects to the tools you already use — messaging apps, email, calendar, documents, project trackers — and builds a working memory of your people, projects, and decisions.
+OpenLoomi is an open-source AI workspace that runs on your desktop. It connects to the tools you already use — messaging apps, email, calendar, documents, project trackers — and builds a working memory of your people, projects, and decisions.
 
 ### Download to Try
 
@@ -64,7 +64,7 @@ Requires Node.js 22+ and pnpm 9+.
 ## Project Structure
 
 ```
-alloomi/
+openloomi/
 ├── apps/web/          # Desktop app (Tauri + Next.js)
 ├── packages/
 │   ├── ai/            # Agent, memory, RAG, model routing
