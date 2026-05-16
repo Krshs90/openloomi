@@ -1,6 +1,6 @@
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/images/logo-dark-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/images/logo-text-dark.png">
   <img src="apps/web/public/images/logo-text.png" alt="OpenLoomi Logo" width="400">
 </picture>
 
