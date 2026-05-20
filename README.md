@@ -39,7 +39,29 @@ OpenLoomi is an open-source AI workspace that runs on your desktop. It connects 
 
 ## Quick Start
 
-| [Releases](https://github.com/melandlabs/openloomi/releases) | [Source Code](https://github.com/melandlabs/openloomi) | [Clone/Fork](https://github.com/melandlabs/openloomi/fork) | [Issues](https://github.com/melandlabs/openloomi/issues) | [Discussions](https://github.com/melandlabs/openloomi/discussions) |
+**Download directly** (for end users):
+
+| macOS Apple Silicon                                                                                        | macOS Intel                                                                                              | Linux AMD64                                                                                              | Linux ARM64                                                                                                | Windows                                                                                                    |
+| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| [.dmg](https://github.com/melandlabs/openloomi/releases/download/v0.5.0/openloomi_0.5.0_macOS_aarch64.dmg) | [.dmg](https://github.com/melandlabs/openloomi/releases/download/v0.5.0/openloomi_0.5.0_macOS_amd64.dmg) | [.deb](https://github.com/melandlabs/openloomi/releases/download/v0.5.0/openloomi_0.5.0_linux_amd64.deb) | [.deb](https://github.com/melandlabs/openloomi/releases/download/v0.5.0/openloomi_0.5.0_linux_aarch64.deb) | [.exe](https://github.com/melandlabs/openloomi/releases/download/v0.5.0/openloomi_0.5.0_windows_amd64.exe) |
+
+**Develop locally** (for developers):
+
+```bash
+git clone https://github.com/melandlabs/openloomi.git
+cd openloomi
+
+cp apps/web/.env.example apps/web/.env
+
+# Set your AI provider keys in .env:
+#   ANTHROPIC_API_KEY=sk-ant-...
+#   LLM_API_KEY=sk-...
+
+pnpm install
+pnpm tauri:dev
+```
+
+Requires Node.js 22+ and pnpm 9+.
 
 ## App Screenshots
 
