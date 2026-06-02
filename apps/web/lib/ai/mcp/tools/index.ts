@@ -20,6 +20,7 @@ import { createSendReplyTool } from "./send-reply";
 import { createInsightCrudTools } from "./insight-crud";
 import { createSearchKnowledgeTools } from "./search-knowledge";
 import { createRawMessagesTools } from "./raw-messages";
+import { createUnifiedMemorySearchTool } from "./unified-memory";
 import { createMemoryPathTool } from "./memory-path";
 import { createSchedulerTools } from "./scheduler";
 
@@ -61,10 +62,18 @@ export function createBusinessToolsMcpServer(
     createSendReplyTool(session),
 
     // Insight CRUD tools
-    ...createInsightCrudTools(session, chatId, onInsightChange),
+    ...createInsightCrudTools(
+      session,
+      chatId,
+      onInsightChange,
+      embeddingsAuthToken,
+    ),
 
     // Search knowledge tools
     ...createSearchKnowledgeTools(session, embeddingsAuthToken),
+
+    // Unified memory search tool
+    createUnifiedMemorySearchTool(session, embeddingsAuthToken),
 
     // Raw messages tools
     ...createRawMessagesTools(session),
