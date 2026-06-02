@@ -3614,7 +3614,7 @@ const enUS = {
     recruitSuccess: "Added to your mates",
     recruitFailed: "Failed to add, please try again",
     taskLabel: "Task",
-    taskHint: "Tell your mate what you want it to help you with",
+    taskHint: "Tell what you want it to help you with",
     moreConfig: "More Options",
     tooltips: {
       selectModel: "Choose a model",

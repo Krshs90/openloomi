@@ -145,9 +145,9 @@ const en = {
     taskListOnlyWithResults: "Only show items with results",
     taskListOnlyFilesEmpty: "No tasks with file output yet",
     addMessageChannel: "Add message channel",
-    taskLabel: "Mate's Task",
-    avatarHint: "Click to customize the mate avatar",
-    taskHint: "Tell your mate what you want it to help you with",
+    taskLabel: "Task Context",
+    avatarHint: "Click to customize the context",
+    taskHint: "Tell what you want it to help you with",
     taskPlaceholder: "For example: Summarize AI industry news every morning.",
     taskScheduleLabel: "Task Schedule",
     taskScheduleHint:

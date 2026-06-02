@@ -3390,7 +3390,7 @@ const zhHans = {
     recruitSuccess: "已添加到你的伙伴",
     recruitFailed: "添加失败，请重试",
     taskLabel: "任务",
-    taskHint: "告诉你的伙伴你希望它帮你做什么",
+    taskHint: "你希望做什么",
     moreConfig: "更多配置",
     tooltips: {
       selectModel: "选择模型",

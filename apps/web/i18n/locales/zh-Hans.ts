@@ -141,7 +141,7 @@ const zh = {
     addMessageChannel: "添加消息频道",
     newCharacter: "新建伙伴",
     taskLabel: "伙伴任务",
-    taskHint: "告诉伙伴你希望让它帮你做的事情",
+    taskHint: "你希望做什么",
     taskPlaceholder: "例如：每天早上整理 AI 行业新闻。",
     taskScheduleLabel: "任务计划",
     taskScheduleHint: "告诉伙伴你希望它在哪些时间帮你执行任务",
