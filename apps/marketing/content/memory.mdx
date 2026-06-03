@@ -33,7 +33,7 @@ Connectors → Processor → Memory → Insights → Chat/Search → Weight Adju
 When a message arrives from a connector, it flows through this pipeline:
 
 1. Stored as a `raw_messages` record with `memoryStage: "short"`
-2. AAAK-encoded and embedded; embedding stored alongside the record
+2. Embedded; embedding stored alongside the record
 3. Added to the vector index for semantic retrieval
 4. Periodically processed by the forgetting engine, which may compress groups of records into `memory_summaries`
 
@@ -130,38 +130,6 @@ When a record is archived (`archivedAt` is set), its `content` field is omitted 
 
 ---
 
-## AAAK Symbol Language
-
-Before a message is embedded, its text is encoded into AAAK (OpenLoomi's compressed symbol language). This encoding normalizes the text and appends structured metadata as a prefix, so the resulting embedding captures both semantic content and contextual signals.
-
-### Encoding Format
-
-`buildMemoryRecordEmbeddingDocument()` produces:
-
-```
-Text: <message content, whitespace-normalized, max 8000 chars>
-Time: <unix timestamp>
-Tier: <short | mid | long>
-Media: <media refs joined by ", " or "none">
-Dimensions: platform: <val>; channel: <val>; ...
-Metadata: <flattened key:value pairs, max 2 levels deep>
-```
-
-### Key Encoding Rules
-
-- **Whitespace**: Collapses `/\s+/g` to a single space
-- **Metadata flattening**: Max 2 levels deep, keys sorted alphabetically, keys starting with `__` excluded
-- **Truncation**: Smart boundary detection at `\n`, `. `, `; `, or space within 75% of maxLength (8000 chars)
-- **Content hashing**: FNV-64a hash with version prefix `memory-record-embedding-text-v1:` — used by the dream process to detect changed content that needs re-embedding
-
-The encoding is designed so that:
-
-1. The semantic core (message text) dominates the embedding
-2. Temporal and tier signals are present but secondary
-3. Metadata enables faceted filtering in vector search
-
----
-
 ## Vector Layer
 
 ### Vector Storage
@@ -183,7 +151,7 @@ Search scans up to `scanLimit = limit * 10` records, computes similarity against
 Search uses both vector similarity and keyword matching:
 
 1. **Semantic path**: Embed query → vector search → similarity scores
-2. **Keyword path**: Query AAAK-encoded keyword field → exact matches
+2. **Keyword path**: Query keyword field → exact matches
 3. **Merge**: Results combined and sorted by relevance
 
 The keyword index catches exact matches (specific names, IDs, dates) that semantic similarity might miss due to embedding variance.
