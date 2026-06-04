@@ -32,6 +32,20 @@ export {
 } from "./vector-service";
 
 export { UniversalEmbeddings } from "./universal-embeddings";
+export {
+  CloudEmbeddingProvider,
+  getConfiguredEmbeddingModelName,
+  getConfiguredEmbeddingProvider,
+  getEmbeddingProviderType,
+  type CloudEmbeddingProviderOptions,
+  type EmbeddingProvider,
+  type EmbeddingProviderFactoryOptions,
+  type EmbeddingProviderType,
+} from "./embedding-provider";
+export {
+  LocalTransformersEmbeddingProvider,
+  type LocalTransformersEmbeddingProviderOptions,
+} from "./local-transformers-embedding-provider";
 
 export {
   TextLoader,
