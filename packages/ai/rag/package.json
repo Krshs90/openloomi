@@ -8,6 +8,7 @@
     "./chunking": "./src/chunking.ts",
     "./embeddings": "./src/embeddings.ts",
     "./vector-service": "./src/vector-service.ts",
+    "./unified-vector-search-service": "./src/unified-vector-search-service.ts",
     "./parsers": "./src/parsers.ts",
     "./embedding-provider": "./src/embedding-provider.ts",
     "./local-transformers-embedding-provider": "./src/local-transformers-embedding-provider.ts",
@@ -29,7 +30,7 @@
     "openai": "^4.85.2",
     "pdfjs-dist": "^4.9.155",
     "pg": "^8.13.1",
-    "sqlite-vec": "^0.1.6-alpha.5",
+    "sqlite-vec": "^0.1.9",
     "zod": "^4.3.6"
   },
   "devDependencies": {
