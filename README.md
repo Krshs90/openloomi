@@ -76,9 +76,6 @@ pnpm tauri:dev
 
 Requires Node.js 22+, pnpm 9+, and Rust 1.75+.
 
-For local Transformers.js embeddings and configurable `sqlite-vec` or ChromaDB
-storage, see [Local Embeddings and Vector Backends](./docs/vector-backends.md).
-
 ## App Screenshots
 
 <table>
