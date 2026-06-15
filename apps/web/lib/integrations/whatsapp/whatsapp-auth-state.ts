@@ -22,6 +22,33 @@ import { getTauriDataDir } from "@/lib/utils/path";
 
 const TTL_SECONDS = 86400 * 356;
 
+async function ensureDirectoryWritable(dirPath: string): Promise<void> {
+  const { existsSync, mkdirSync, accessSync, constants } =
+    await import("node:fs");
+
+  // Try to create directory if it doesn't exist
+  if (!existsSync(dirPath)) {
+    try {
+      mkdirSync(dirPath, { recursive: true });
+    } catch (err) {
+      throw new Error(
+        `Failed to create WhatsApp auth directory at ${dirPath}: ${
+          err instanceof Error ? err.message : err
+        }. Please ensure the application has permission to write to this location.`,
+      );
+    }
+  }
+
+  // Verify directory is writable
+  try {
+    accessSync(dirPath, constants.W_OK);
+  } catch {
+    throw new Error(
+      `WhatsApp auth directory at ${dirPath} is not writable. Please check directory permissions.`,
+    );
+  }
+}
+
 function getDataPath(): string {
   if (process.env.WHATSAPP_AUTH_DATA_PATH)
     return process.env.WHATSAPP_AUTH_DATA_PATH;
@@ -122,9 +149,9 @@ export class WhatsAppBaileysAuthState {
 
     if (isTauriMode()) {
       // File-based: use Baileys's own impl (synchronous reads via async-lock)
-      const { state, saveCreds } = await useMultiFileAuthState(
-        path.join(dataPath, this.sessionId),
-      );
+      const sessionPath = path.join(dataPath, this.sessionId);
+      await ensureDirectoryWritable(sessionPath);
+      const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
       this._state = state;
       // Also expose saveCreds on state so Baileys can call it
       (

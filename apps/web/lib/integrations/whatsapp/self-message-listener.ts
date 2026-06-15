@@ -1,95 +1,37 @@
 /**
  * WhatsApp Self Message Listener
  *
- * Uses an in-memory store + real-time events to detect Note to Self messages.
- * Baileys v7 removed the built-in makeInMemoryStore, so we implement a minimal
- * one ourselves that captures messages via messages.upsert events.
+ * Uses a file-backed message store + real-time events to detect Note to Self
+ * messages. Baileys v7 removed the built-in makeInMemoryStore; we use
+ * WhatsAppMessageHistoryStore, which persists messages per chat so history
+ * survives process restarts.
  */
 
 import { loadIntegrationCredentials } from "@/lib/db/queries";
-import { getIntegrationAccountsByUserId } from "@/lib/db/queries";
+import {
+  getIntegrationAccountsByUserId,
+  getUserInsightSettings,
+} from "@/lib/db/queries";
+import { AI_PROXY_BASE_URL, DEFAULT_AI_MODEL } from "@/lib/env/constants";
+import { createTaskSession } from "@/lib/files/workspace/sessions";
+import { resolveAgentLanguage } from "@/lib/insights/resolve-language";
 import { WhatsAppAdapter, activeAdapters } from "@/lib/integrations/whatsapp";
+import { WhatsAppMessageHistoryStore } from "@openloomi/integrations/whatsapp";
+import { markdownToWhatsApp } from "@openloomi/integrations/whatsapp/markdown";
 import type { WASocket } from "@whiskeysockets/baileys";
 import type { WAMessage } from "@whiskeysockets/baileys/lib/Types/Message";
 import { downloadMediaMessage } from "@whiskeysockets/baileys/lib/Utils/messages";
 import { whatsappClientRegistry } from "./client-registry";
+import {
+  type WhatsAppConversationStore,
+  createWhatsAppConversationStore,
+} from "./conversation-store";
 import { handleAgentRuntime } from "./runtime";
-import { WhatsAppConversationStore } from "@openloomi/integrations/whatsapp/conversation-store";
-import { getAppMemoryDir } from "@/lib/utils/path";
-import { markdownToWhatsApp } from "@openloomi/integrations/whatsapp/markdown";
-import { createTaskSession } from "@/lib/files/workspace/sessions";
-import { DEFAULT_AI_MODEL, AI_PROXY_BASE_URL } from "@/lib/env/constants";
-
-// Singleton instance for WhatsApp conversation history
-const whatsappConversationStore = new WhatsAppConversationStore(
-  getAppMemoryDir(),
-);
 
 const AI_SUFFIX = "(By openloomi AI)";
 const WHATSAPP_MAX_ATTACHMENT_BYTES = 100 * 1024 * 1024;
 const POLL_INTERVAL_MS = 3000;
 const POLL_MESSAGE_COUNT = 10;
-
-/**
- * Minimal in-memory store for Baileys v7.
- * Baileys v7 removed makeInMemoryStore, so we implement a simple one that
- * captures messages via messages.upsert events and provides loadMessages.
- * Capped at MAX_MESSAGES_PER_JID to prevent memory overflow.
- */
-const MAX_MESSAGES_PER_JID = 500;
-
-class InMemoryStore {
-  private messages: Map<string, WAMessage[]> = new Map();
-
-  /**
-   * Attach event listeners to a WASocket to populate the store.
-   */
-  attach(sock: WASocket): void {
-    sock.ev.on("messages.upsert", ({ messages }) => {
-      this.addMessages(messages);
-    });
-
-    sock.ev.on("chats.upsert", (chats) => {
-      for (const chat of chats) {
-        if (!chat.id) continue;
-        if (!this.messages.has(chat.id)) {
-          this.messages.set(chat.id, []);
-        }
-      }
-    });
-  }
-
-  /**
-   * Add an array of messages to the store. Used to populate historical
-   * messages from messaging-history.set events.
-   */
-  addMessages(msgs: WAMessage[]): void {
-    for (const msg of msgs) {
-      const jid = msg.key.remoteJid;
-      if (!jid) continue;
-      const existing = this.messages.get(jid) ?? [];
-      if (!existing.some((m) => m.key.id === msg.key.id)) {
-        existing.push(msg);
-        if (existing.length > MAX_MESSAGES_PER_JID) {
-          existing.splice(0, existing.length - MAX_MESSAGES_PER_JID);
-        }
-        this.messages.set(jid, existing);
-      }
-    }
-  }
-
-  /**
-   * Load messages for a given JID (chat).
-   */
-  async loadMessages(
-    jid: string,
-    count: number,
-    _opts: object,
-  ): Promise<WAMessage[]> {
-    const msgs = this.messages.get(jid) ?? [];
-    return msgs.slice(-count);
-  }
-}
 
 interface SelfMessageListenerConfig {
   userId: string;
@@ -104,22 +46,26 @@ interface AccountListener {
   /** Use Long | number to match v7 messageTimestamp type (proto.IWebMessageInfo.messageTimestamp) */
   lastSeenMsgTimestamp?: number | null;
   accountId: string;
-  /** In-memory store for message history (Baileys v7 removed the built-in store) */
-  store: InMemoryStore;
+  /** File-backed message history store (Baileys v7 removed the built-in store) */
+  store: WhatsAppMessageHistoryStore;
+  /** True once the first poll has marked persisted history as already seen */
+  pollBaselineEstablished?: boolean;
   /** IDs of AI-sent file messages — used to skip recursive processing */
   sentFileMsgIds: Set<string>;
   /** IDs of already-processed messages — immediate deduplication before processing */
   processedMsgIds: Set<string>;
 }
 
-class WhatsAppSelfMessageListener {
+export class WhatsAppSelfMessageListener {
   private userId: string;
   private authToken?: string;
   private accountListeners: Map<string, AccountListener> = new Map();
+  private conversationStore: WhatsAppConversationStore;
 
   constructor(config: SelfMessageListenerConfig) {
     this.userId = config.userId;
     this.authToken = config.authToken;
+    this.conversationStore = createWhatsAppConversationStore(this.userId);
   }
 
   async start(): Promise<void> {
@@ -177,7 +123,7 @@ class WhatsAppSelfMessageListener {
           sessionKey: sk,
         });
         adapter.attachToSocket(existingSock);
-        void this.startListening(account.id, existingSock, adapter);
+        void this.startListening(account.id, existingSock, adapter, sk);
         continue;
       }
 
@@ -195,7 +141,7 @@ class WhatsAppSelfMessageListener {
         // immediately (even if sock is not ready yet) and await its initialization.
         activeAdapters.set(account.id, adapter);
         const sock = await adapter.startSocket();
-        void this.startListening(account.id, sock, adapter);
+        void this.startListening(account.id, sock, adapter, sk);
       } catch (error) {
         console.error(
           `[WhatsAppSelfListener] Failed to create socket for ${account.id}:`,
@@ -213,16 +159,25 @@ class WhatsAppSelfMessageListener {
     accountId: string,
     sock: WASocket,
     adapter: WhatsAppAdapter,
+    sessionKey?: string,
   ): void {
-    // Create in-memory store and attach to socket so loadMessages works.
-    // Baileys v7 removed the built-in makeInMemoryStore, so we use our own.
-    const store = new InMemoryStore();
-    store.attach(sock);
-    // Expose store on the socket so the bot (via WhatsAppAdapter) can call
-    // sock.store.loadMessages() when reading chat history.
-    (sock as any).store = store;
+    // Reuse the persistent store the adapter attached at socket creation
+    // (WhatsAppAdapter.ensureMessageStore — keyed by sessionId so the initial
+    // history sync at pairing is already captured). Only create one here as a
+    // fallback for sockets that somehow lack it — keyed the same way the
+    // adapter would (sessionKey ?? accountId) so the directories never fork.
+    const existingStore = (sock as any).store as
+      | WhatsAppMessageHistoryStore
+      | undefined;
+    const store =
+      existingStore ??
+      new WhatsAppMessageHistoryStore({ accountId: sessionKey ?? accountId });
+    if (!existingStore) {
+      store.attach(sock);
+      (sock as any).store = store;
+    }
     console.log(
-      `[WhatsAppSelfListener] [${accountId}] InMemoryStore attached and set on sock.store, sock.ev exists: ${!!sock.ev}`,
+      `[WhatsAppSelfListener] [${accountId}] MessageHistoryStore ready on sock.store (reused: ${!!existingStore}), sock.ev exists: ${!!sock.ev}`,
     );
 
     // Shared message processing helper used by both messages.upsert and messaging-history.set
@@ -328,22 +283,19 @@ class WhatsAppSelfMessageListener {
         `[WhatsAppSelfListener] [${accountId}] *** messaging-history.set FIRED! chats=${data.chats.length} msgs=${data.messages.length} isLatest=${data.isLatest}`,
       );
 
-      // Populate the InMemoryStore with historical messages so getChatsByChunk
-      // (insight bot) can read them via store.loadMessages().
-      // messages.upsert only fires for real-time messages; historical messages
-      // come through messaging-history.set instead.
+      // Historical messages are persisted by WhatsAppMessageHistoryStore,
+      // which subscribes to this event itself (see store.attach in
+      // startListening). Here we only advance lastSeen / dedup bookkeeping.
       const listener = this.accountListeners.get(accountId);
-      if (listener?.store) {
-        listener.store.addMessages(data.messages);
-        console.log(
-          `[WhatsAppSelfListener] [${accountId}] InMemoryStore populated with ${data.messages.length} history messages`,
-        );
-      } else {
-        console.log(
-          `[WhatsAppSelfListener] [${accountId}] No store found on listener yet, skipping history population`,
-        );
-      }
-      const newest = data.messages[data.messages.length - 1];
+      // Advance lastSeen only from SELF-CHAT messages: this event carries
+      // messages from all chats, and a foreign-chat id would never match the
+      // poll loop's lastSeen break check — the poll would then replay old
+      // notes after the initial pairing sync.
+      const myJid = sock.user?.id;
+      const selfMessages = myJid
+        ? data.messages.filter((m) => m.key.remoteJid === myJid)
+        : [];
+      const newest = selfMessages[selfMessages.length - 1];
       if (newest?.key.id && newest?.messageTimestamp && listener) {
         const historyTs = Number(newest.messageTimestamp);
         const currentTs = listener.lastSeenMsgTimestamp ?? 0;
@@ -359,25 +311,11 @@ class WhatsAppSelfMessageListener {
           );
         }
       }
-      // After restart, the in-memory store is empty. Manually trigger app state sync
-      // to repopulate it with all chats and messages. This ensures messages.upsert
-      // (skipped for history) and messaging-history.set fire with complete data.
-      const sockExtra = sock as unknown as {
-        resyncAppState?: (
-          collections: string[],
-          isInitialSync: boolean,
-        ) => Promise<void>;
-      };
-      sockExtra.resyncAppState?.(
-        [
-          "critical_block",
-          "critical_unblock_low",
-          "regular_high",
-          "regular_low",
-          "regular",
-        ],
-        true,
-      );
+      // Do NOT call resyncAppState here. History sync fires this event once per
+      // chunk during onboarding; an app state sync per chunk hammered WhatsApp's
+      // w:sync:app:state endpoint and triggered rate-overlimit, breaking the
+      // whole initial sync. resyncAppState never returns messages anyway —
+      // history only arrives via phone-pushed messaging-history.set events.
 
       // Add history message IDs to processedMsgIds so they won't be processed
       // again if messages.upsert fires for the same messages later.
@@ -409,7 +347,7 @@ class WhatsAppSelfMessageListener {
   private startPolling(
     accountId: string,
     sock: WASocket,
-    store: InMemoryStore,
+    store: WhatsAppMessageHistoryStore,
     adapter?: WhatsAppAdapter,
   ): void {
     console.log(
@@ -418,7 +356,7 @@ class WhatsAppSelfMessageListener {
 
     const pollInterval = setInterval(async () => {
       try {
-        await this.pollForSelfMessages(accountId, sock, store);
+        await this.pollForSelfMessages(accountId, sock);
       } catch (error) {
         console.error(
           `[WhatsAppSelfListener] [${accountId}] Poll error:`,
@@ -438,13 +376,12 @@ class WhatsAppSelfMessageListener {
     });
 
     // Run first poll immediately
-    void this.pollForSelfMessages(accountId, sock, store);
+    void this.pollForSelfMessages(accountId, sock);
   }
 
   private async pollForSelfMessages(
     accountId: string,
     sock: WASocket,
-    store: InMemoryStore,
   ): Promise<void> {
     const listener = this.accountListeners.get(accountId);
 
@@ -477,12 +414,34 @@ class WhatsAppSelfMessageListener {
       if (listener) {
         listener.sock = currentSock;
         if (listener.adapter) (listener.adapter as any).sock = currentSock;
-        // Also re-attach our InMemoryStore to the new socket
-        listener.store.attach(currentSock);
+        // Adopt the new socket's store if its creator already attached one
+        // (avoids two store instances writing the same account dir);
+        // otherwise re-attach ours.
+        const newSockStore = (currentSock as any).store as
+          | WhatsAppMessageHistoryStore
+          | undefined;
+        if (newSockStore && newSockStore !== listener.store) {
+          // Flush the old store's pending writes before discarding it, then
+          // destroy it: the old socket is defunct, and destroying releases
+          // the instance (and its message cache) from the live-store
+          // registry. Best-effort: messages the adopted store already
+          // hydrated before this flush may miss the old store's last batch —
+          // acceptable for cache-like data.
+          listener.store.flush();
+          listener.store.destroy();
+          listener.store = newSockStore;
+        } else if (!newSockStore) {
+          listener.store.attach(currentSock);
+          (currentSock as any).store = listener.store;
+        }
       }
     }
 
-    const lastSeenMsgId = listener?.lastSeenMsgId;
+    // Resolve the store AFTER the socket-swap adoption above: the interval
+    // closure must never read a stale store whose event listeners are bound
+    // to a replaced socket (its hydration cache would hide new messages).
+    const store = listener?.store;
+    if (!store) return;
 
     try {
       const messages: WAMessage[] = await store.loadMessages(
@@ -492,6 +451,38 @@ class WhatsAppSelfMessageListener {
       );
 
       if (!messages || messages.length === 0) {
+        // An empty store means there is no pre-restart history to skip —
+        // establish the baseline now so the very first note that arrives is
+        // processed by the poll (its job is to back up missed upsert events).
+        if (listener && !listener.lastSeenMsgId) {
+          listener.pollBaselineEstablished = true;
+        }
+        return;
+      }
+
+      // Read lastSeen AFTER the await: a concurrent poll (e.g. the immediate
+      // first poll racing the interval) may have established the baseline in
+      // the meantime — a stale pre-await snapshot would replay old notes.
+      const lastSeenMsgId = listener?.lastSeenMsgId;
+
+      // First poll for this listener with no lastSeen reference: the store is
+      // file-backed, so everything loaded here may be pre-restart history.
+      // Mark it all as seen instead of processing — otherwise a restart would
+      // replay old Note to Self messages. Live notes arriving from now on are
+      // handled by the messages.upsert handler and subsequent polls.
+      if (!lastSeenMsgId && listener && !listener.pollBaselineEstablished) {
+        const newest = messages[messages.length - 1];
+        // Only mark the baseline as established once it is actually recorded;
+        // otherwise (newest missing key.id — corrupt persisted data) the next
+        // poll would skip this guard and replay all history notes.
+        if (newest?.key.id) {
+          listener.pollBaselineEstablished = true;
+          listener.lastSeenMsgId = newest.key.id;
+          listener.lastSeenMsgTimestamp = Number(newest.messageTimestamp);
+          console.log(
+            `[WhatsAppSelfListener] [${accountId}] Poll baseline established at msg id=${newest.key.id} — ${messages.length} persisted message(s) marked as seen`,
+          );
+        }
         return;
       }
 
@@ -506,6 +497,11 @@ class WhatsAppSelfMessageListener {
         if (lastSeenMsgId && msgId === lastSeenMsgId) {
           break;
         }
+        // Dedup against the upsert path: when more than POLL_MESSAGE_COUNT
+        // messages arrive between two polls, lastSeenMsgId falls outside the
+        // loaded window and the break above never fires — without this check
+        // the loop would re-process (re-reply to) upsert-handled notes.
+        if (listener?.processedMsgIds.has(msgId)) continue;
 
         // Skip our own AI reply (has AI suffix)
         const text = this.extractText(msg);
@@ -518,6 +514,7 @@ class WhatsAppSelfMessageListener {
         const msgRemoteJid = msg.key.remoteJid || "";
         if (msgRemoteJid !== myJid) continue;
 
+        listener?.processedMsgIds.add(msgId);
         this.handleIncomingMessage(msg, accountId, currentSock);
 
         // Update last seen (first one wins as we go newest-first)
@@ -585,8 +582,10 @@ class WhatsAppSelfMessageListener {
 
     const prompt = messageText.length > 0 ? messageText : "(Image attached)";
 
-    const conversationHistory =
-      whatsappConversationStore.getConversationHistory(this.userId, accountId);
+    const conversationHistory = this.conversationStore.getConversationHistory(
+      this.userId,
+      accountId,
+    );
 
     // Resolve target JID once — used by both text and file sending.
     const myPhoneJid = sock.user?.id
@@ -595,6 +594,11 @@ class WhatsAppSelfMessageListener {
 
     // Track files already sent so we don't re-send on incremental text updates.
     const sentFilePaths = new Set<string>();
+
+    const insightSettings = await getUserInsightSettings(this.userId).catch(
+      () => null,
+    );
+    const userLanguage = resolveAgentLanguage(insightSettings);
 
     await handleAgentRuntime(
       prompt,
@@ -606,6 +610,7 @@ class WhatsAppSelfMessageListener {
         userId: this.userId,
         accountId,
         workDir,
+        language: userLanguage,
         ...(this.authToken && {
           modelConfig: {
             apiKey: this.authToken,
@@ -649,14 +654,14 @@ class WhatsAppSelfMessageListener {
           console.log("[WhatsAppSelfListener] Reply sent successfully");
 
           if (messageText.length > 0) {
-            whatsappConversationStore.addMessage(
+            this.conversationStore.addMessage(
               this.userId,
               accountId,
               "user",
               messageText,
             );
           }
-          whatsappConversationStore.addMessage(
+          this.conversationStore.addMessage(
             this.userId,
             accountId,
             "assistant",
@@ -879,9 +884,11 @@ class WhatsAppSelfMessageListener {
 
     for (const [
       accountId,
-      { sock, pollInterval, adapter },
+      { sock, pollInterval, adapter, store },
     ] of this.accountListeners.entries()) {
       if (pollInterval) clearInterval(pollInterval);
+      // Persist any pending message writes before tearing down.
+      store.flush();
       console.log(
         `[WhatsAppSelfListener] Stopped polling for account ${accountId}`,
       );
@@ -890,13 +897,21 @@ class WhatsAppSelfMessageListener {
       // Without this, restart creates duplicate handlers on the same socket,
       // causing messages to be processed twice (two replies).
       // Note: removeAllListeners(eventName) removes ALL handlers for that event,
-      // including InMemoryStore's own messages.upsert handler (same event name).
+      // including the message history store's own handlers (same event names).
       if (sock?.ev) {
         sock.ev.removeAllListeners("messages.upsert");
         sock.ev.removeAllListeners("chats.upsert");
         sock.ev.removeAllListeners("messaging-history.set");
+        // removeAllListeners also stripped the persistent store's handlers.
+        // The socket may outlive this listener (it is shared with the QR flow
+        // and the insights bot), so re-attach the store — otherwise message
+        // persistence silently freezes until a new socket is created.
+        // Known gap: adapter instances' own chats handlers (attachToSocket)
+        // are stripped too and NOT restored here; adapters recover their chat
+        // list from the persisted store (hydrateChatsFromStore) instead.
+        store.attach(sock);
         console.log(
-          `[WhatsAppSelfListener] Removed socket event listeners for account ${accountId}`,
+          `[WhatsAppSelfListener] Removed socket event listeners for account ${accountId} (store re-attached)`,
         );
       }
 
