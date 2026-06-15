@@ -15,6 +15,7 @@ export type IntegrationId =
   | "instagram"
   | "twitter"
   | "google_calendar"
+  | "google_meet"
   | "outlook_calendar"
   | "teams"
   | "facebook_messenger"
@@ -107,6 +108,7 @@ export function useIntegrations() {
         instagram: [],
         twitter: [],
         google_calendar: [],
+        google_meet: [],
         outlook_calendar: [],
         teams: [],
         facebook_messenger: [],

@@ -180,6 +180,7 @@ export const integrationAccounts = pgTable(
         "instagram",
         "twitter",
         "google_calendar",
+        "google_meet",
         "outlook_calendar",
         "teams",
         "facebook_messenger",
