@@ -29,6 +29,7 @@ import { classifyAgentError } from "@/lib/errors/known-errors";
 // barrel re-exports processor.ts, which statically pulls every platform adapter
 // (googleapis, baileys, telegram, ...) into this boot-resident Feishu listener.
 import { resolveAgentLanguage } from "@/lib/insights/resolve-language";
+import type { RawMessage } from "@openloomi/indexeddb";
 import {
   FeishuConversationStore,
   type ChatType,
@@ -96,6 +97,127 @@ function formatEntryForModel(entry: QuotedMessage): RuntimeConversationMessage {
     role: entry.role,
     content: `${prefix}${entry.content}`,
   };
+}
+
+async function storeFeishuRawMessage(input: {
+  userId: string;
+  botId: string;
+  accountId: string;
+  messageId: string;
+  chatId: string;
+  chatType: "p2p" | "group";
+  role: "user" | "assistant";
+  content: string;
+  person?: string;
+  senderId?: string;
+  metadata?: Record<string, unknown>;
+  authToken?: string;
+}) {
+  const content = input.content.trim();
+  if (!content) {
+    return;
+  }
+
+  try {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const { getRawMessageManager } = await import("@/lib/memory/raw-message-store");
+    const manager = await getRawMessageManager();
+    const rawMessage: RawMessage = {
+      messageId: input.messageId,
+      platform: "feishu",
+      botId: input.botId,
+      userId: input.userId,
+      channel: input.chatId,
+      person: input.person,
+      timestamp: nowSec,
+      content,
+      attachments: [],
+      metadata: {
+        source: "feishu_ws_listener",
+        accountId: input.accountId,
+        chatType: input.chatType,
+        role: input.role,
+        senderId: input.senderId,
+        ...input.metadata,
+      },
+      createdAt: nowSec,
+    };
+    const messageWithEmbedding = await embedRawMessageOnWrite(
+      rawMessage,
+      input.authToken,
+    );
+    await manager.storeMessage(messageWithEmbedding);
+    const { upsertRawMessagesToChroma } = await import("@/lib/memory/chroma-memory-index");
+    await upsertRawMessagesToChroma([messageWithEmbedding]);
+    console.log("[Feishu] Stored raw message", {
+      messageId: input.messageId,
+      role: input.role,
+      chatId: input.chatId,
+      embedded: Boolean(messageWithEmbedding.embedding?.length),
+    });
+  } catch (error) {
+    console.warn("[Feishu] Failed to store raw message:", error);
+  }
+}
+
+async function embedRawMessageOnWrite(
+  message: RawMessage,
+  authToken?: string,
+): Promise<RawMessage> {
+  try {
+    const { hasUserEmbeddingProviderConfig } = await import(
+      "@/lib/ai/user-embedding-settings"
+    );
+    if (
+      !(await hasUserEmbeddingProviderConfig({
+        userId: message.userId,
+        authToken,
+      }))
+    ) {
+      return message;
+    }
+
+    const { buildMemoryRecordEmbeddingDocument } = await import(
+      "@openloomi/ai/memory"
+    );
+    const { rawMessageToMemoryRecord } = await import("@openloomi/indexeddb");
+
+    const document = buildMemoryRecordEmbeddingDocument(
+      rawMessageToMemoryRecord(message),
+    );
+    if (!document.content) {
+      return message;
+    }
+
+    const { createUserEmbeddingProvider, getUserEmbeddingModelName } =
+      await import("@/lib/ai/user-embedding-settings");
+    const embeddings = await createUserEmbeddingProvider({
+      userId: message.userId,
+      authToken,
+    });
+    const [embedding] = await embeddings.embedDocuments([document.content]);
+    if (!embedding || embedding.length === 0) {
+      return message;
+    }
+
+    return {
+      ...message,
+      embedding,
+      embeddingModel: await getUserEmbeddingModelName(message.userId),
+      embeddingContentHash: document.contentHash,
+      embeddingDimensions: embedding.length,
+      embeddingUpdatedAt: Date.now(),
+    };
+  } catch (error) {
+    console.warn(
+      "[Feishu] Failed to embed raw message on write; dream will retry:",
+      {
+        messageId: message.messageId,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+    return message;
+  }
 }
 
 /**
