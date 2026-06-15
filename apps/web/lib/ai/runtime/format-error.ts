@@ -19,6 +19,7 @@ export function formatAgentStreamErrorForUser(
     | "chat"
     | "scheduler",
   raw: string,
+  _language?: string | null,
 ): string {
   const zh = ["feishu", "dingtalk", "qqbot", "weixin"].includes(platform);
 
@@ -59,4 +60,81 @@ export function formatAgentStreamErrorForUser(
   }
 
   return zh ? `出错了：${raw}` : `Error: ${raw}`;
+}
+
+/**
+ * Check if the agent's answer indicates it could not provide a sufficient response.
+ * Returns an error environment string if the answer appears to be a failure to answer,
+ * or null if the answer seems valid.
+ */
+export function classifyAgentError(
+  answer: string,
+  _options?: { strict?: boolean },
+): string | null {
+  if (!answer || typeof answer !== "string") return null;
+
+  // Check for common error patterns
+  const errorPatterns = [
+    /^(Error|错误):/i,
+    /^抱歉|对不起|抱歉/i,
+    /I (can'?t|could not|don'?t know|have?n?t sufficient)/i,
+    /don'?t have enough (information|context)/i,
+    /unable to (answer|provide|give)/i,
+  ];
+
+  for (const pattern of errorPatterns) {
+    if (pattern.test(answer.trim())) {
+      return "INSUFFICIENT_CONTEXT";
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Format a "catch-all" error message when an unexpected error occurs during agent processing.
+ */
+export function formatCatchAllErrorForUser(
+  platform:
+    | "telegram"
+    | "whatsapp"
+    | "imessage"
+    | "gmail"
+    | "feishu"
+    | "dingtalk"
+    | "qqbot"
+    | "weixin",
+  error: unknown,
+  _language?: string | null,
+): string {
+  const zh = ["feishu", "dingtalk", "qqbot", "weixin"].includes(platform);
+  const errorMessage = error instanceof Error ? error.message : String(error);
+
+  if (zh) {
+    return `处理消息时发生错误：${errorMessage}。请稍后再试。`;
+  }
+  return `An error occurred: ${errorMessage}. Please try again later.`;
+}
+
+/**
+ * Format a message when the agent could not provide a sufficient answer.
+ */
+export function formatInsufficientAnswerForUser(
+  platform:
+    | "telegram"
+    | "whatsapp"
+    | "imessage"
+    | "gmail"
+    | "feishu"
+    | "dingtalk"
+    | "qqbot"
+    | "weixin",
+  _language?: string | null,
+): string {
+  const zh = ["feishu", "dingtalk", "qqbot", "weixin"].includes(platform);
+
+  if (zh) {
+    return "抱歉，我无法根据当前上下文提供满意的回答。请提供更多信息或换一种方式提问。";
+  }
+  return "Sorry, I couldn't provide a satisfactory answer based on the current context. Please provide more information or try a different approach.";
 }

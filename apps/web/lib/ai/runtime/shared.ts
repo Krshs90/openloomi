@@ -23,6 +23,12 @@ import { getAppMemoryDir } from "@/lib/utils/path";
 import { getUserLlmProviderConfig } from "@/lib/ai/user-llm-api-settings";
 import { stripMalformedToolCalls } from "@/lib/utils/tool-names";
 import { formatAgentStreamErrorForUser } from "./format-error";
+export { formatAgentStreamErrorForUser } from "./format-error";
+export {
+  formatCatchAllErrorForUser,
+  formatInsufficientAnswerForUser,
+} from "./format-error";
+export { classifyAgentError } from "@/lib/errors/known-errors";
 
 /**
  * Maximum tokens allowed in conversation history passed to the agent.
@@ -45,8 +51,6 @@ function ensurePluginsRegistered() {
     pluginsRegistered = true;
   }
 }
-
-export { formatAgentStreamErrorForUser } from "./format-error";
 
 /**
  * Get display name for a tool (similar to Web UI)
