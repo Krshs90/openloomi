@@ -14,6 +14,181 @@ import { cleanEmailForLLM, buildSnippet } from "@openloomi/integrations/utils";
 import type { UserType } from "@/app/(auth)/auth";
 
 const GMAIL_MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+const DEFAULT_GMAIL_INSIGHT_SYNC_MAX_RESULTS = 100;
+const DEFAULT_GMAIL_INSIGHT_BOOTSTRAP_WINDOW_HOURS = 24;
+const GMAIL_API_LIST_PAGE_SIZE = 500;
+const GMAIL_API_FETCH_CONCURRENCY = 5;
+
+export const GMAIL_INSIGHT_SYNC_CONFIG_KEY = "gmailSync";
+
+type GmailInsightSyncMode =
+  | "bootstrap"
+  | "history"
+  | "bounded_resync"
+  | "pending";
+
+export type GmailInsightSyncState = {
+  historyId?: string;
+  pendingMessageIds?: string[];
+  bootstrapCompletedAt?: string;
+  lastSyncedAt?: string;
+  lastSyncMode?: GmailInsightSyncMode;
+  lastHistoryExpiredAt?: string;
+  lastFetchedMessageCount?: number;
+  lastListedMessageCount?: number;
+  lastSkippedMessageCount?: number;
+};
+
+export type GmailInsightSyncTimingEvent = {
+  phase: string;
+  status: "start" | "success" | "failure";
+  durationMs?: number;
+  details?: Record<string, unknown>;
+  error?: unknown;
+};
+
+type GmailInsightSyncTimingLogger = (
+  event: GmailInsightSyncTimingEvent,
+) => void;
+
+export type GmailInsightSyncResult = {
+  emails: ExtractEmailInfo[];
+  syncMode: GmailInsightSyncMode;
+  historyId?: string;
+  previousHistoryId?: string;
+  nextSyncState: GmailInsightSyncState;
+  listedMessageCount: number;
+  fetchedMessageCount: number;
+  skippedMessageCount: number;
+  pendingMessageCount: number;
+  resultSizeEstimate?: number;
+  historyExpired?: boolean;
+};
+
+type GmailMessageFetchResult = {
+  emails: ExtractEmailInfo[];
+  skippedMessageCount: number;
+};
+
+function parseString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function parseNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
+export function parseGmailInsightSyncState(
+  value: unknown,
+): GmailInsightSyncState | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const raw = value as Record<string, unknown>;
+  const pendingMessageIds = Array.isArray(raw.pendingMessageIds)
+    ? raw.pendingMessageIds.filter(
+        (item): item is string => typeof item === "string" && item.length > 0,
+      )
+    : undefined;
+
+  return {
+    historyId: parseString(raw.historyId),
+    pendingMessageIds:
+      pendingMessageIds && pendingMessageIds.length > 0
+        ? [...new Set(pendingMessageIds)]
+        : undefined,
+    bootstrapCompletedAt: parseString(raw.bootstrapCompletedAt),
+    lastSyncedAt: parseString(raw.lastSyncedAt),
+    lastSyncMode: parseString(raw.lastSyncMode) as
+      | GmailInsightSyncMode
+      | undefined,
+    lastHistoryExpiredAt: parseString(raw.lastHistoryExpiredAt),
+    lastFetchedMessageCount: parseNumber(raw.lastFetchedMessageCount),
+    lastListedMessageCount: parseNumber(raw.lastListedMessageCount),
+    lastSkippedMessageCount: parseNumber(raw.lastSkippedMessageCount),
+  };
+}
+
+function formatGmailSearchDate(timestampSeconds: number): string {
+  const date = new Date(timestampSeconds * 1000);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}/${month}/${day}`;
+}
+
+function isGmailHistoryExpiredError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybeError = error as {
+    code?: number;
+    status?: number;
+    response?: { status?: number };
+  };
+  return (
+    maybeError.code === 404 ||
+    maybeError.status === 404 ||
+    maybeError.response?.status === 404
+  );
+}
+
+function isSkippableGmailMessageFetchError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybeError = error as {
+    code?: number;
+    status?: number;
+    response?: { status?: number };
+  };
+  const status =
+    maybeError.code ?? maybeError.status ?? maybeError.response?.status;
+  return status === 404 || status === 410;
+}
+
+function shouldSkipGmailLabelIds(labelIds?: string[] | null): boolean {
+  if (!Array.isArray(labelIds)) return false;
+  const labels = new Set(labelIds);
+  return (
+    labels.has("CATEGORY_PROMOTIONS") ||
+    labels.has("SPAM") ||
+    labels.has("TRASH")
+  );
+}
+
+async function timeGmailSyncStep<T>(
+  onTiming: GmailInsightSyncTimingLogger | undefined,
+  phase: string,
+  details: Record<string, unknown> | undefined,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const startedAt = Date.now();
+  onTiming?.({
+    phase,
+    status: "start",
+    details,
+  });
+
+  try {
+    const result = await fn();
+    onTiming?.({
+      phase,
+      status: "success",
+      durationMs: Date.now() - startedAt,
+      details,
+    });
+    return result;
+  } catch (error) {
+    onTiming?.({
+      phase,
+      status: "failure",
+      durationMs: Date.now() - startedAt,
+      details,
+      error,
+    });
+    throw error;
+  }
+}
 
 /**
  * Raw attachment format (before ingestion)
@@ -293,6 +468,424 @@ export class GmailOAuthAdapter {
       });
       return profile.data.emailAddress ?? "";
     });
+  }
+
+  async getEmailsForInsightSync({
+    since,
+    maxResults = DEFAULT_GMAIL_INSIGHT_SYNC_MAX_RESULTS,
+    bootstrapWindowHours = DEFAULT_GMAIL_INSIGHT_BOOTSTRAP_WINDOW_HOURS,
+    syncState,
+    onTiming,
+  }: {
+    since: number;
+    maxResults?: number;
+    bootstrapWindowHours?: number;
+    syncState?: GmailInsightSyncState | null;
+    onTiming?: GmailInsightSyncTimingLogger;
+  }): Promise<GmailInsightSyncResult> {
+    return this.withGmail(async (gmail) => {
+      const normalizedMaxResults = Math.max(1, Math.floor(maxResults));
+      const previousState = parseGmailInsightSyncState(syncState) ?? {};
+      const pendingMessageIds = previousState.pendingMessageIds ?? [];
+
+      if (pendingMessageIds.length > 0) {
+        return this.fetchPendingInsightMessages({
+          gmail,
+          pendingMessageIds,
+          maxResults: normalizedMaxResults,
+          syncState: previousState,
+          onTiming,
+        });
+      }
+
+      if (previousState.historyId) {
+        try {
+          return await this.fetchHistoryInsightMessages({
+            gmail,
+            startHistoryId: previousState.historyId,
+            maxResults: normalizedMaxResults,
+            syncState: previousState,
+            onTiming,
+          });
+        } catch (error) {
+          if (!isGmailHistoryExpiredError(error)) {
+            throw error;
+          }
+          return this.fetchBoundedBootstrapInsightMessages({
+            gmail,
+            since,
+            maxResults: normalizedMaxResults,
+            bootstrapWindowHours,
+            syncState: {
+              ...previousState,
+              lastHistoryExpiredAt: new Date().toISOString(),
+            },
+            syncMode: "bounded_resync",
+            historyExpired: true,
+            onTiming,
+          });
+        }
+      }
+
+      return this.fetchBoundedBootstrapInsightMessages({
+        gmail,
+        since,
+        maxResults: normalizedMaxResults,
+        bootstrapWindowHours,
+        syncState: previousState,
+        syncMode: "bootstrap",
+        onTiming,
+      });
+    });
+  }
+
+  private async fetchPendingInsightMessages({
+    gmail,
+    pendingMessageIds,
+    maxResults,
+    syncState,
+    onTiming,
+  }: {
+    gmail: gmail_v1.Gmail;
+    pendingMessageIds: string[];
+    maxResults: number;
+    syncState: GmailInsightSyncState;
+    onTiming?: GmailInsightSyncTimingLogger;
+  }): Promise<GmailInsightSyncResult> {
+    const messageIds = pendingMessageIds.slice(0, maxResults);
+    const remainingPendingIds = pendingMessageIds.slice(messageIds.length);
+    const fetchResult = await this.fetchMessagesByIds(gmail, messageIds, {
+      syncMode: "pending",
+      onTiming,
+    });
+    const emails = fetchResult.emails;
+    const now = new Date().toISOString();
+
+    return {
+      emails,
+      syncMode: "pending",
+      historyId: syncState.historyId,
+      nextSyncState: {
+        ...syncState,
+        pendingMessageIds:
+          remainingPendingIds.length > 0 ? remainingPendingIds : undefined,
+        lastSyncedAt: now,
+        lastSyncMode: "pending",
+        lastFetchedMessageCount: emails.length,
+        lastListedMessageCount: pendingMessageIds.length,
+        lastSkippedMessageCount: fetchResult.skippedMessageCount,
+      },
+      listedMessageCount: pendingMessageIds.length,
+      fetchedMessageCount: emails.length,
+      skippedMessageCount: fetchResult.skippedMessageCount,
+      pendingMessageCount: remainingPendingIds.length,
+    };
+  }
+
+  private async fetchHistoryInsightMessages({
+    gmail,
+    startHistoryId,
+    maxResults,
+    syncState,
+    onTiming,
+  }: {
+    gmail: gmail_v1.Gmail;
+    startHistoryId: string;
+    maxResults: number;
+    syncState: GmailInsightSyncState;
+    onTiming?: GmailInsightSyncTimingLogger;
+  }): Promise<GmailInsightSyncResult> {
+    const historyResult = await timeGmailSyncStep(
+      onTiming,
+      "gmail_api_history_list",
+      { startHistoryId },
+      () => this.listMessageIdsByHistory(gmail, startHistoryId),
+    );
+    const messageIds = historyResult.messageIds.slice(0, maxResults);
+    const pendingMessageIds = historyResult.messageIds.slice(messageIds.length);
+    const fetchResult = await this.fetchMessagesByIds(gmail, messageIds, {
+      syncMode: "history",
+      onTiming,
+    });
+    const emails = fetchResult.emails;
+    const now = new Date().toISOString();
+
+    return {
+      emails,
+      syncMode: "history",
+      historyId: historyResult.historyId,
+      previousHistoryId: startHistoryId,
+      nextSyncState: {
+        ...syncState,
+        historyId: historyResult.historyId ?? syncState.historyId,
+        pendingMessageIds:
+          pendingMessageIds.length > 0 ? pendingMessageIds : undefined,
+        lastSyncedAt: now,
+        lastSyncMode: "history",
+        lastFetchedMessageCount: emails.length,
+        lastListedMessageCount: historyResult.messageIds.length,
+        lastSkippedMessageCount: fetchResult.skippedMessageCount,
+      },
+      listedMessageCount: historyResult.messageIds.length,
+      fetchedMessageCount: emails.length,
+      skippedMessageCount: fetchResult.skippedMessageCount,
+      pendingMessageCount: pendingMessageIds.length,
+    };
+  }
+
+  private async fetchBoundedBootstrapInsightMessages({
+    gmail,
+    since,
+    maxResults,
+    bootstrapWindowHours,
+    syncState,
+    syncMode,
+    historyExpired = false,
+    onTiming,
+  }: {
+    gmail: gmail_v1.Gmail;
+    since: number;
+    maxResults: number;
+    bootstrapWindowHours: number;
+    syncState: GmailInsightSyncState;
+    syncMode: "bootstrap" | "bounded_resync";
+    historyExpired?: boolean;
+    onTiming?: GmailInsightSyncTimingLogger;
+  }): Promise<GmailInsightSyncResult> {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const boundedSince = Math.max(
+      since,
+      nowSeconds - Math.max(1, bootstrapWindowHours) * 60 * 60,
+    );
+    const query = `after:${formatGmailSearchDate(boundedSince)} -category:promotions`;
+    const listResult = await timeGmailSyncStep(
+      onTiming,
+      "gmail_api_messages_list",
+      {
+        query,
+        since: boundedSince,
+        sinceIso: new Date(boundedSince * 1000).toISOString(),
+        maxResults,
+        syncMode,
+      },
+      () => this.listMessageIdsByQuery(gmail, query, maxResults),
+    );
+    const fetchResult = await this.fetchMessagesByIds(
+      gmail,
+      listResult.messageIds,
+      {
+        syncMode,
+        since: boundedSince,
+        onTiming,
+      },
+    );
+    const emails = fetchResult.emails;
+    const historyId = await this.getCurrentHistoryId(gmail, onTiming, syncMode);
+    const now = new Date().toISOString();
+
+    return {
+      emails,
+      syncMode,
+      historyId,
+      previousHistoryId: syncState.historyId,
+      nextSyncState: {
+        ...syncState,
+        historyId: historyId ?? syncState.historyId,
+        pendingMessageIds: undefined,
+        bootstrapCompletedAt: syncState.bootstrapCompletedAt ?? now,
+        lastSyncedAt: now,
+        lastSyncMode: syncMode,
+        lastFetchedMessageCount: emails.length,
+        lastListedMessageCount: listResult.messageIds.length,
+        lastSkippedMessageCount: fetchResult.skippedMessageCount,
+      },
+      listedMessageCount: listResult.messageIds.length,
+      fetchedMessageCount: emails.length,
+      skippedMessageCount: fetchResult.skippedMessageCount,
+      pendingMessageCount: 0,
+      resultSizeEstimate: listResult.resultSizeEstimate,
+      historyExpired,
+    };
+  }
+
+  private async listMessageIdsByQuery(
+    gmail: gmail_v1.Gmail,
+    query: string,
+    maxResults: number,
+  ): Promise<{
+    messageIds: string[];
+    resultSizeEstimate?: number;
+  }> {
+    const messageIds: string[] = [];
+    let pageToken: string | undefined;
+    let resultSizeEstimate: number | undefined;
+
+    do {
+      const remaining = maxResults - messageIds.length;
+      const response = await gmail.users.messages.list({
+        userId: "me",
+        q: query,
+        maxResults: Math.min(GMAIL_API_LIST_PAGE_SIZE, remaining),
+        pageToken,
+        includeSpamTrash: false,
+      });
+      resultSizeEstimate =
+        response.data.resultSizeEstimate ?? resultSizeEstimate;
+      const pageMessageIds = (response.data.messages ?? [])
+        .map((message: gmail_v1.Schema$Message) => message.id)
+        .filter((id: string | null | undefined): id is string => Boolean(id));
+      messageIds.push(...pageMessageIds);
+      pageToken = response.data.nextPageToken ?? undefined;
+    } while (pageToken && messageIds.length < maxResults);
+
+    return {
+      messageIds: [...new Set(messageIds)].slice(0, maxResults),
+      resultSizeEstimate,
+    };
+  }
+
+  private async listMessageIdsByHistory(
+    gmail: gmail_v1.Gmail,
+    startHistoryId: string,
+  ): Promise<{
+    messageIds: string[];
+    historyId?: string;
+  }> {
+    const messageIds: string[] = [];
+    let pageToken: string | undefined;
+    let historyId: string | undefined;
+
+    do {
+      const response = await gmail.users.history.list({
+        userId: "me",
+        startHistoryId,
+        historyTypes: ["messageAdded"],
+        maxResults: GMAIL_API_LIST_PAGE_SIZE,
+        pageToken,
+      });
+      historyId = response.data.historyId ?? historyId;
+
+      for (const history of response.data.history ?? []) {
+        for (const added of history.messagesAdded ?? []) {
+          const message = added.message;
+          if (!message?.id || shouldSkipGmailLabelIds(message.labelIds)) {
+            continue;
+          }
+          messageIds.push(message.id);
+        }
+      }
+
+      pageToken = response.data.nextPageToken ?? undefined;
+    } while (pageToken);
+
+    return {
+      messageIds: [...new Set(messageIds)],
+      historyId: historyId ?? (await this.getCurrentHistoryId(gmail)),
+    };
+  }
+
+  private async getCurrentHistoryId(
+    gmail: gmail_v1.Gmail,
+    onTiming?: GmailInsightSyncTimingLogger,
+    reason?: string,
+  ): Promise<string | undefined> {
+    const profile = (await timeGmailSyncStep(
+      onTiming,
+      "gmail_api_get_profile",
+      { reason },
+      () =>
+        gmail.users.getProfile({
+          userId: "me",
+        }),
+    )) as GaxiosResponseWithHTTP2<{ historyId?: string | null }>;
+    return profile.data.historyId ?? undefined;
+  }
+
+  private async fetchMessagesByIds(
+    gmail: gmail_v1.Gmail,
+    messageIds: string[],
+    {
+      syncMode,
+      since,
+      onTiming,
+    }: {
+      syncMode: GmailInsightSyncMode;
+      since?: number;
+      onTiming?: GmailInsightSyncTimingLogger;
+    },
+  ): Promise<GmailMessageFetchResult> {
+    if (messageIds.length === 0) {
+      return {
+        emails: [],
+        skippedMessageCount: 0,
+      };
+    }
+
+    return timeGmailSyncStep(
+      onTiming,
+      "gmail_api_fetch_message_details",
+      {
+        messageCount: messageIds.length,
+        concurrency: GMAIL_API_FETCH_CONCURRENCY,
+        syncMode,
+        since,
+        sinceIso: since ? new Date(since * 1000).toISOString() : undefined,
+      },
+      async () => {
+        const results: Array<ExtractEmailInfo | null> = new Array(
+          messageIds.length,
+        ).fill(null);
+        let nextIndex = 0;
+        let skippedMessageCount = 0;
+
+        const worker = async () => {
+          while (nextIndex < messageIds.length) {
+            const currentIndex = nextIndex;
+            nextIndex++;
+            const messageId = messageIds[currentIndex];
+            if (!messageId) continue;
+
+            let msgDetail: GaxiosResponseWithHTTP2<gmail_v1.Schema$Message>;
+            try {
+              msgDetail = await gmail.users.messages.get({
+                userId: "me",
+                id: messageId,
+                format: "full",
+              });
+            } catch (error) {
+              if (isSkippableGmailMessageFetchError(error)) {
+                skippedMessageCount++;
+                continue;
+              }
+              throw error;
+            }
+            const formattedMessage = await this.formatGmailMessage(msgDetail);
+            if (since && formattedMessage.timestamp < since) {
+              continue;
+            }
+            const attachments =
+              await this.ingestEmailAttachments(formattedMessage);
+            results[currentIndex] = {
+              ...formattedMessage,
+              attachments,
+            };
+          }
+        };
+
+        const concurrency = Math.min(
+          GMAIL_API_FETCH_CONCURRENCY,
+          messageIds.length,
+        );
+        await Promise.all(Array.from({ length: concurrency }, () => worker()));
+
+        return {
+          emails: results.filter(
+            (email): email is ExtractEmailInfo => email !== null,
+          ),
+          skippedMessageCount,
+        };
+      },
+    );
   }
 
   /**
