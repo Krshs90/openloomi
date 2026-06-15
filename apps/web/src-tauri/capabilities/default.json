@@ -80,6 +80,7 @@
         "$RESOURCE/**",
         "/**"
       ]
-    }
+    },
+    "allow-get-system-locale"
   ]
 }
