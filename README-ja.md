@@ -14,6 +14,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-F8D52A?logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/xkJaJyWcsv)
 [![X](https://img.shields.io/badge/X-Follow-000000?logo=x&logoColor=white)](https://x.com/AlloomiAI)
+[![Downloads](https://img.shields.io/github/downloads/melandlabs/openloomi/total?logo=github)](https://github.com/melandlabs/openloomi/releases)
 
 </div>
 
@@ -34,7 +35,7 @@ OpenLoomiは、デスクトップ上で動作するオープンソースのAIワ
 | 🔗  | **[オープンソース化されたスキル](https://openloomi.ai/docs/skills)**         | OpenLoomi Skillsはオープンソースで、あらゆるエージェントに組み込めます。Claude Code、Codex、OpenClaw、Hermesなどに対応しています。                                                                                                                                                    |
 
 <p align="center">
-  <img src="screenshots/components.png" alt="Architecture" width="100%">
+  <img src="screenshots/components.png" alt="アーキテクチャ" width="100%">
 </p>
 
 ## クイックスタート

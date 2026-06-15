@@ -14,6 +14,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-F8D52A?logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/xkJaJyWcsv)
 [![X](https://img.shields.io/badge/X-Follow-000000?logo=x&logoColor=white)](https://x.com/AlloomiAI)
+[![Downloads](https://img.shields.io/github/downloads/melandlabs/openloomi/total?logo=github)](https://github.com/melandlabs/openloomi/releases)
 
 </div>
 
@@ -22,8 +23,6 @@
 ## 什么是 OpenLoomi？
 
 OpenLoomi 是一个开源的 AI 工作空间，运行在你的桌面上。它连接你已经在使用的工具——消息应用、邮件、日历、文档、项目追踪器——并为你的人、项目和决策构建一个**全域上下文图谱**。
-
-不同于 ChatGPT 或 Claude——那些 AI 每次对话结束就忘了——OpenLoomi 的记忆会自己"长出来"，完全可见、可审计。
 
 ## 功能特性
 
@@ -36,7 +35,7 @@ OpenLoomi 是一个开源的 AI 工作空间，运行在你的桌面上。它连
 | 🔗  | **[开源 Skills](https://openloomi.ai/docs/skills)**        | OpenLoomi Skills 完全开源，可集成到任何 AI Agent — Claude Code、Codex、OpenClaw、Hermes 等                                                                                                                                               |
 
 <p align="center">
-  <img src="screenshots/components.png" alt="架构图" width="100%">
+  <img src="screenshots/components.png" alt="Architecture" width="100%">
 </p>
 
 ## 快速开始
