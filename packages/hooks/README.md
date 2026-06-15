@@ -1,6 +1,6 @@
 # @openloomi/hooks
 
-A collection of pure React hooks extracted from the openloomi web app.
+A collection of pure React hooks.
 
 ## Installation
 
