@@ -57,6 +57,14 @@ export function getToolDisplayName(
       return t("common.toolNames.queryContacts");
     case "queryIntegrations":
       return t("common.toolNames.queryIntegrations");
+    case "refreshConnectorInsights":
+      return t("common.toolNames.refreshConnectorInsights");
+    case "queryCalendarEvents":
+      return t("common.toolNames.queryCalendarEvents");
+    case "summarizeCalendarDuration":
+      return t("common.toolNames.summarizeCalendarDuration");
+    case "createCalendarMeeting":
+      return t("common.toolNames.createCalendarMeeting");
     case "sendReply":
       return t("common.toolNames.sendReply");
     case "createInsight":
@@ -87,6 +95,46 @@ export function getToolDisplayName(
       return t("common.toolNames.toggleScheduledJob");
     case "executeScheduledJob":
       return t("common.toolNames.executeScheduledJob");
+    case "executeTaskNow":
+      return t("common.toolNames.executeTaskNow");
+    case "createTask":
+      return t("common.toolNames.createTask");
+    case "getTaskInfo":
+      return t("common.toolNames.getTaskInfo");
+    case "updateTaskSettings":
+      return t("common.toolNames.updateTaskSettings");
+    case "bootstrapTaskConfiguration":
+      return t("common.toolNames.bootstrapTaskConfiguration");
+    case "findReusableExecutors":
+      return t("common.toolNames.findReusableExecutors");
+    case "linkExecutorToTask":
+      return t("common.toolNames.linkExecutorToTask");
+    case "createScheduledExecutorForTask":
+      return t("common.toolNames.createScheduledExecutorForTask");
+    case "requestPlatformConnection":
+      return t("common.toolNames.requestPlatformConnection");
+    case "saveUserMemory":
+      return t("common.toolNames.saveUserMemory");
+    case "time":
+      return t("common.toolNames.time");
+    case "downloadInsightAttachment":
+      return t("common.toolNames.downloadInsightAttachment");
+    case "updateScheduledJob":
+      return t("common.toolNames.updateScheduledJob");
+    case "deleteInsight":
+      return t("common.toolNames.deleteInsight");
+    case "AskUserQuestion":
+      return t("common.toolNames.AskUserQuestion");
+    case "getCharacterInfo":
+      return t("common.toolNames.getCharacterInfo");
+    case "executeCharacter":
+      return t("common.toolNames.executeCharacter");
+    case "getCharacterExecutionHistory":
+      return t("common.toolNames.getCharacterExecutionHistory");
+    case "getCharacterFiles":
+      return t("common.toolNames.getCharacterFiles");
+    case "updateCharacterSchedule":
+      return t("common.toolNames.updateCharacterSchedule");
     default:
       return toolNameWithoutPrefix;
   }
