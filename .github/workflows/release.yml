@@ -547,7 +547,8 @@ jobs:
             libxkbcommon-dev \
             libssl-dev \
             build-essential \
-            libasound2-dev
+            libasound2-dev \
+            dpkg-dev
 
       - name: Get pnpm store directory
         run: |
