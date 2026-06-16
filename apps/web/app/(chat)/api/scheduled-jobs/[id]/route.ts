@@ -19,6 +19,7 @@ import { startJobExecution, completeJobExecution } from "@/lib/cron/service";
 import { createJobExecutionStreamResponse } from "@/lib/cron/stream-response";
 import { isTauriMode } from "@/lib/env";
 import { AI_PROXY_BASE_URL } from "@/lib/env/constants";
+import { getUserLlmApiSettingWithApiKey } from "@/lib/db/queries";
 import type { JobExecutionContext } from "@/lib/cron/types";
 
 export const dynamic = "force-dynamic";
@@ -162,6 +163,39 @@ export async function POST(
         // ignore parse errors
       }
 
+      // Build modelConfig for execution
+      // First check body.modelConfig, then fall back to job's modelConfig, then to user's API settings
+      const jobModelConfig =
+        typeof job.jobConfig === "string"
+          ? JSON.parse(job.jobConfig).modelConfig
+          : (job.jobConfig as Record<string, unknown>)?.modelConfig;
+      let executionModelConfig: JobExecutionContext["modelConfig"] = {
+        baseUrl: AI_PROXY_BASE_URL,
+        ...(body.modelConfig || jobModelConfig || {}),
+      };
+
+      // If modelConfig doesn't have apiKey, try to get it from user's API settings
+      if (!executionModelConfig?.apiKey) {
+        try {
+          const anthropicSetting = await getUserLlmApiSettingWithApiKey({
+            userId: session.user.id,
+            providerType: "anthropic_compatible",
+          });
+          if (anthropicSetting?.enabled && anthropicSetting?.apiKey) {
+            executionModelConfig = {
+              baseUrl: anthropicSetting.baseUrl || AI_PROXY_BASE_URL,
+              apiKey: anthropicSetting.apiKey,
+              model: anthropicSetting.model || executionModelConfig?.model,
+            };
+          }
+        } catch (error) {
+          console.warn(
+            "[ScheduledJobs] Failed to fetch user API settings:",
+            error,
+          );
+        }
+      }
+
       const context: JobExecutionContext = {
         userId: session.user.id,
         jobId: job.id,
@@ -169,10 +203,7 @@ export async function POST(
         triggeredBy: "manual" as const,
         ...(characterIdFromJob && { characterId: characterIdFromJob }),
         timezone: job.timezone,
-        modelConfig: {
-          baseUrl: AI_PROXY_BASE_URL,
-          ...(body.modelConfig || {}),
-        },
+        modelConfig: executionModelConfig,
       };
 
       await startJobExecution(context);

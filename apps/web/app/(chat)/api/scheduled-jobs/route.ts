@@ -7,7 +7,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/(auth)/auth";
 import { listJobs, createJob } from "@/lib/cron/service";
+import { getUserLlmApiSettingWithApiKey } from "@/lib/db/queries";
 import type { ScheduleConfig, JobConfig } from "@/lib/cron/types";
+import { AI_PROXY_BASE_URL } from "@/lib/env/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -121,9 +123,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // If modelConfig is not provided, try to get it from the user's AI API settings
+    let modelConfig = body.modelConfig;
+    if (!modelConfig) {
+      try {
+        const anthropicSetting = await getUserLlmApiSettingWithApiKey({
+          userId: session.user.id,
+          providerType: "anthropic_compatible",
+        });
+        if (anthropicSetting?.enabled && anthropicSetting?.apiKey) {
+          modelConfig = {
+            baseUrl: anthropicSetting.baseUrl || AI_PROXY_BASE_URL,
+            apiKey: anthropicSetting.apiKey,
+            model: anthropicSetting.model || undefined,
+          };
+        }
+      } catch (error) {
+        console.warn("[ScheduledJobs] Failed to fetch user API settings:", error);
+      }
+    }
+
     const job: JobConfig = {
       ...(body.job as JobConfig),
-      modelConfig: body.modelConfig,
+      modelConfig,
     };
 
     const createdJob = await createJob(session.user.id, {
